@@ -1,5 +1,5 @@
 import * as m from '@neoncity/common-js/marshall'
-import { MarshalWith } from '@neoncity/common-js/marshall'
+import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith } from '@neoncity/common-js/marshall'
 
 
 export enum Role {
@@ -12,13 +12,13 @@ export enum Role {
 export class Auth0UserIdHashMarshaller extends m.StringMarshaller {
     private static readonly _hexRegExp: RegExp = new RegExp('^[0-9a-f]{64}$');
 
-    filter(s: string) {
+    filter(s: string): string {
         if (s.length != 64) {
-	    throw new m.ExtractError('Expected string to be 64 characters');
+	    throw new ExtractError('Expected string to be 64 characters');
 	}
 
 	if (!Auth0UserIdHashMarshaller._hexRegExp.test(s)) {
-	    throw new m.ExtractError('Expected all hex characters');
+	    throw new ExtractError('Expected all hex characters');
 	}
 
 	return s;
@@ -37,7 +37,7 @@ export class User {
     @MarshalWith(m.TimeMarshaller)
     timeLastUpdated: Date;
 
-    @MarshalWith(m.MarshalEnum(Role))
+    @MarshalWith(MarshalEnum(Role))
     role: Role;
 
     @MarshalWith(Auth0UserIdHashMarshaller)
@@ -58,4 +58,38 @@ export class User {
     isAdmin(): boolean {
         return this.role == Role.Admin;
     }
+}
+
+
+export class Auth0AccessTokenMarshaller extends m.StringMarshaller {
+    private static readonly _alnumRegExp: RegExp = new RegExp('^[0-9a-zA-Z]+$');
+    
+    filter(s: string): string {
+        if (s.length == 0) {
+            throw new ExtractError('Expected a string to be non-empty');
+        }
+
+        if (!Auth0AccessTokenMarshaller._alnumRegExp.test(s)) {
+            throw new ExtractError('Should only contain alphanumerics');
+        }
+
+        return s;
+    }
+}
+
+
+export class CreateUserRequest {
+    @MarshalWith(Auth0AccessTokenMarshaller)
+    auth0AccessToken: string;
+}
+
+
+export class GetUserRequest {
+    @MarshalWith(Auth0AccessTokenMarshaller)
+    auth0AccessToken: string;
+}
+
+export class IdentityResponse {
+    @MarshalWith(MarshalFrom(User))
+    user: User;
 }
