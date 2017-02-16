@@ -140,13 +140,13 @@ export class IdentityService {
     async getOrCreateUser(): Promise<User> {
 	const authInfo = new AuthInfo(this._auth0AccessToken);
 	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
-	const options = (Object as any).assign({}, IdentityService._getUserOptions, {headers: {"X-NeonCity-AuthInfo": authInfoSerialized}});
+	const options = (Object as any).assign({}, IdentityService._getUserOptions, {headers: {'X-NeonCity-AuthInfo': authInfoSerialized}});
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", options);
+	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
 	} catch (e) {
-	    throw new IdentityError("Could not retrieve user - request failed because '${e.toString()}'");
+	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
 	}
 
 	if (rawResponse.ok) {
@@ -155,29 +155,25 @@ export class IdentityService {
 		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
 		return identityResponse.user;
 	    } catch (e) {
-		if (e instanceof ExtractError) {
-		    throw new IdentityError("Could not retrieve user - marshal error '${e.toString()}'");
-		} else {
-		    throw new IdentityError('Could not retrieve user - JSON serialization error');
-		}
+		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
 	} else if (rawResponse.status == 404) {
 	    return await this._createUser();
 	} else {
-	    throw new IdentityError("Could not retrieve user - service response ${rawResponse.status}");
+	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
 	}
     }
 
     private async _createUser(): Promise<User> {
 	const authInfo = new AuthInfo(this._auth0AccessToken);
 	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
-	const options = (Object as any).assign({}, IdentityService._createUserOptions, {headers: {"X-NeonCity-AuthInfo": authInfoSerialized}});
+	const options = (Object as any).assign({}, IdentityService._createUserOptions, {headers: {'X-NeonCity-AuthInfo': authInfoSerialized}});
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", options);
+	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
 	} catch (e) {
-	    throw new IdentityError("Could not create user - request failed because '${e.toString()}'");
+	    throw new IdentityError(`Could not create user - request failed because '${e.toString()}'`);
 	}
 
 	if (rawResponse.ok) {
@@ -186,14 +182,30 @@ export class IdentityService {
 		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
 		return identityResponse.user;
 	    } catch (e) {
-		if (e instanceof ExtractError) {
-		    throw new IdentityError("Could not create user - marshal error '${e.toString()}'");
-		} else {
-		    throw new IdentityError('Could not retrieve user - JSON serialization error');
-		}
+		throw new IdentityError(`Could not create user '${e.toString()}'`);
 	    }
 	} else {
-	    throw new IdentityError("Could not create user - service response ${rawResponse.status}");
+	    throw new IdentityError(`Could not create user - service response ${rawResponse.status}`);
 	}
     }
 }
+
+
+// async function main(): Promise<number> {
+//     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
+//     const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
+//     const identityService = new IdentityService('chop-suei', 'localhost:10001', authInfoMarshaller, identityResponseMarshaller);
+
+//     try {
+// 	const user = await identityService.getOrCreateUser();
+
+// 	console.log(user);
+//     } catch (e) {
+// 	console.log(e);
+//     }
+
+//     return 10;
+// }
+
+// console.log('here');
+// main().then(() => { console.log('Hello'); });
