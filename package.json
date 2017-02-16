@@ -1,6 +1,6 @@
 {
   "name": "@neoncity/identity-sdk-js",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The SDK for the identity service.",
   "author": "NeonCity team",
   "scripts": {
@@ -29,12 +29,17 @@
     "tsconfig.json": "f:tsconfig.json"
   },
   "license": "UNLICENSED",
-  "dependencies": {},
+  "dependencies": {
+    "es6-promise": "^4.0.5",
+    "isomorphic-fetch": "^2.2.1"
+  },
   "devDependencies": {
     "@neoncity/common-js": "^0.13.0",
     "@neoncity/coverage-filter": "^0.1.0",
     "@neoncity/togemfury": "^0.0.9",
     "@types/chai": "^3.4.34",
+    "@types/es6-promise": "0.0.32",
+    "@types/isomorphic-fetch": "0.0.32",
     "@types/istanbul": "^0.4.29",
     "@types/mocha": "^2.2.38",
     "@types/node": "^7.0.0",

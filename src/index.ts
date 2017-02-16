@@ -1,5 +1,7 @@
+import 'isomorphic-fetch'
+
 import * as m from '@neoncity/common-js/marshall'
-import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith } from '@neoncity/common-js/marshall'
+import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from '@neoncity/common-js/marshall'
 
 
 export enum Role {
@@ -92,4 +94,99 @@ export class GetUserRequest {
 export class IdentityResponse {
     @MarshalWith(MarshalFrom(User))
     user: User;
+}
+
+
+export class IdentityError extends Error {
+    constructor(message: string) {
+	super(message);
+	this.name = 'IdentityError';
+    }
+}
+
+
+export class IdentityService {
+    private static readonly _getUserOptions: RequestInit = {
+	method: 'GET',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client'
+    };
+
+    private static readonly _createUserOptions: RequestInit = {
+	method: 'GET',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client'
+    };
+    
+    private readonly _auth0AccessToken: string;
+    private readonly _identityServiceHost: string;
+    private readonly _identityResponseMarshaller: Marshaller<IdentityResponse>;
+
+    constructor(auth0AccessToken: string, identityServiceHost: string, identityResponseMarshaller: Marshaller<IdentityResponse>) {
+	this._auth0AccessToken = auth0AccessToken;
+	this._identityServiceHost = identityServiceHost;
+	this._identityResponseMarshaller = identityResponseMarshaller;
+    }
+
+    async getOrCreateUser(): Promise<User> {
+	const getUserRequest = new GetUserRequest();
+	getUserRequest.auth0AccessToken = this._auth0AccessToken;
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", IdentityService._getUserOptions);
+	} catch (e) {
+	    throw new IdentityError("Could not retrieve user - request failed because '${e.toString()}'");
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
+		return identityResponse.user;
+	    } catch (e) {
+		if (e instanceof ExtractError) {
+		    throw new IdentityError("Could not retrieve user - marshal error '${e.toString()}'");
+		} else {
+		    throw new IdentityError('Could not retrieve user - JSON serialization error');
+		}
+	    }
+	} else if (rawResponse.status == 404) {
+	    return await this._createUser();
+	} else {
+	    throw new IdentityError("Could not retrieve user - service response ${rawResponse.status}");
+	}
+    }
+
+    private async _createUser(): Promise<User> {
+	const createUserRequest = new CreateUserRequest();
+	createUserRequest.auth0AccessToken = this._auth0AccessToken;
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", IdentityService._createUserOptions);
+	} catch (e) {
+	    throw new IdentityError("Could not create user - request failed because '${e.toString()}'");
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
+		return identityResponse.user;
+	    } catch (e) {
+		if (e instanceof ExtractError) {
+		    throw new IdentityError("Could not create user - marshal error '${e.toString()}'");
+		} else {
+		    throw new IdentityError('Could not retrieve user - JSON serialization error');
+		}
+	    }
+	} else {
+	    throw new IdentityError("Could not create user - service response ${rawResponse.status}");
+	}
+    }
 }
