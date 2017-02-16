@@ -80,16 +80,15 @@ export class Auth0AccessTokenMarshaller extends m.StringMarshaller {
 }
 
 
-export class CreateUserRequest {
+export class AuthInfo {
     @MarshalWith(Auth0AccessTokenMarshaller)
     auth0AccessToken: string;
+
+    constructor(auth0AccessToken: string) {
+	this.auth0AccessToken = auth0AccessToken;
+    }
 }
 
-
-export class GetUserRequest {
-    @MarshalWith(Auth0AccessTokenMarshaller)
-    auth0AccessToken: string;
-}
 
 export class IdentityResponse {
     @MarshalWith(MarshalFrom(User))
@@ -115,7 +114,7 @@ export class IdentityService {
     };
 
     private static readonly _createUserOptions: RequestInit = {
-	method: 'GET',
+	method: 'POST',
 	mode: 'cors',
 	cache: 'no-cache',
 	redirect: 'error',
@@ -124,21 +123,28 @@ export class IdentityService {
     
     private readonly _auth0AccessToken: string;
     private readonly _identityServiceHost: string;
+    private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _identityResponseMarshaller: Marshaller<IdentityResponse>;
 
-    constructor(auth0AccessToken: string, identityServiceHost: string, identityResponseMarshaller: Marshaller<IdentityResponse>) {
+    constructor(
+	auth0AccessToken: string,
+	identityServiceHost: string,
+	authInfoMarshaller: Marshaller<AuthInfo>,
+	identityResponseMarshaller: Marshaller<IdentityResponse>) {
 	this._auth0AccessToken = auth0AccessToken;
 	this._identityServiceHost = identityServiceHost;
+	this._authInfoMarshaller = authInfoMarshaller;
 	this._identityResponseMarshaller = identityResponseMarshaller;
     }
 
     async getOrCreateUser(): Promise<User> {
-	const getUserRequest = new GetUserRequest();
-	getUserRequest.auth0AccessToken = this._auth0AccessToken;
+	const authInfo = new AuthInfo(this._auth0AccessToken);
+	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
+	const options = (Object as any).assign({}, IdentityService._getUserOptions, {headers: {"X-NeonCity-AuthInfo": authInfoSerialized}});
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", IdentityService._getUserOptions);
+	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", options);
 	} catch (e) {
 	    throw new IdentityError("Could not retrieve user - request failed because '${e.toString()}'");
 	}
@@ -163,12 +169,13 @@ export class IdentityService {
     }
 
     private async _createUser(): Promise<User> {
-	const createUserRequest = new CreateUserRequest();
-	createUserRequest.auth0AccessToken = this._auth0AccessToken;
+	const authInfo = new AuthInfo(this._auth0AccessToken);
+	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
+	const options = (Object as any).assign({}, IdentityService._createUserOptions, {headers: {"X-NeonCity-AuthInfo": authInfoSerialized}});
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", IdentityService._createUserOptions);
+	    rawResponse = await fetch("http://${this._identityServiceDomain}/user", options);
 	} catch (e) {
 	    throw new IdentityError("Could not create user - request failed because '${e.toString()}'");
 	}

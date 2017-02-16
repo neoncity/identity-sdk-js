@@ -1,6 +1,6 @@
 {
   "name": "@neoncity/identity-sdk-js",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "The SDK for the identity service.",
   "author": "NeonCity team",
   "scripts": {
