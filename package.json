@@ -1,6 +1,6 @@
 {
   "name": "@neoncity/identity-sdk-js",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "The SDK for the identity service.",
   "author": "NeonCity team",
   "scripts": {
@@ -34,7 +34,7 @@
     "isomorphic-fetch": "^2.2.1"
   },
   "devDependencies": {
-    "@neoncity/common-js": "^0.13.0",
+    "@neoncity/common-js": "^0.14.0",
     "@neoncity/coverage-filter": "^0.1.0",
     "@neoncity/togemfury": "^0.0.9",
     "@types/chai": "^3.4.34",

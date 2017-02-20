@@ -104,6 +104,14 @@ export class IdentityError extends Error {
 }
 
 
+export function newIdentityService(auth0AccessToken: string, identityServiceHost: string) {
+    const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
+    const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
+
+    return new IdentityService(auth0AccessToken, identityServiceHost, authInfoMarshaller, identityResponseMarshaller);
+}
+
+
 export class IdentityService {
     private static readonly _getUserOptions: RequestInit = {
 	method: 'GET',
