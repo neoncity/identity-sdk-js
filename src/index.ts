@@ -45,15 +45,19 @@ export class User {
     @MarshalWith(Auth0UserIdHashMarshaller)
     auth0UserIdHash: string;
 
+    @MarshalWith(m.StringMarshaller)
+    name: string;
+
     @MarshalWith(m.UriMarshaller)
     pictureUri: string;
 
-    constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, pictureUri: string) {
+    constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, name: string, pictureUri: string) {
 	this.id = id;
 	this.timeCreated = timeCreated;
 	this.timeLastUpdated = timeLastUpdated;
 	this.role = role;
 	this.auth0UserIdHash = auth0UserIdHash;
+	this.name = name;
 	this.pictureUri = pictureUri;
     }
 
