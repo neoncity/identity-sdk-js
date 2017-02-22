@@ -7,11 +7,11 @@ import { Auth0AccessTokenMarshaller, Auth0UserIdHashMarshaller, Role, User } fro
 describe('User', () => {
     const UserTestCases = [
 	{
-	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Admin, '', ''),
+	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Admin, '', '', ''),
 	    isAdmin: true
 	},
 	{
-	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Regular, '', ''),
+	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Regular, '', '', ''),
 	    isAdmin: false
 	}
     ];
