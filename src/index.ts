@@ -151,8 +151,10 @@ export class IdentityService {
 
     async getOrCreateUser(): Promise<User> {
 	const authInfo = new AuthInfo(this._auth0AccessToken);
-	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
-	const options = (Object as any).assign({}, IdentityService._getUserOptions, {headers: {'X-NeonCity-AuthInfo': authInfoSerialized}});
+	
+	const options = (Object as any).assign({}, IdentityService._getUserOptions, {
+	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
+	});
 
 	let rawResponse: Response;
 	try {
@@ -178,8 +180,10 @@ export class IdentityService {
 
     private async _createUser(): Promise<User> {
 	const authInfo = new AuthInfo(this._auth0AccessToken);
-	const authInfoSerialized = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
-	const options = (Object as any).assign({}, IdentityService._createUserOptions, {headers: {'X-NeonCity-AuthInfo': authInfoSerialized}});
+
+	const options = (Object as any).assign({}, IdentityService._getUserOptions, {
+	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
+	});
 
 	let rawResponse: Response;
 	try {
