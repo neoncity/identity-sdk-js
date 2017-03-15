@@ -181,7 +181,7 @@ export class IdentityService {
     private async _createUser(): Promise<User> {
 	const authInfo = new AuthInfo(this._auth0AccessToken);
 
-	const options = (Object as any).assign({}, IdentityService._getUserOptions, {
+	const options = (Object as any).assign({}, IdentityService._createUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
 	});
 
