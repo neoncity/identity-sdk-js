@@ -201,23 +201,3 @@ export class IdentityService {
 	}
     }
 }
-
-
-// async function main(): Promise<number> {
-//     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
-//     const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
-//     const identityService = new IdentityService('chop-suei', 'localhost:10001', authInfoMarshaller, identityResponseMarshaller);
-
-//     try {
-// 	const user = await identityService.getOrCreateUser();
-
-// 	console.log(user);
-//     } catch (e) {
-// 	console.log(e);
-//     }
-
-//     return 10;
-// }
-
-// console.log('here');
-// main().then(() => { console.log('Hello'); });
