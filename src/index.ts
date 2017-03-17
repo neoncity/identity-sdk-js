@@ -1,7 +1,7 @@
 import 'isomorphic-fetch'
 
-import * as m from '@neoncity/common-js/marshall'
-import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from '@neoncity/common-js/marshall'
+import * as r from 'raynor'
+import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
 
 export enum Role {
@@ -11,7 +11,7 @@ export enum Role {
 }
 
 
-export class Auth0UserIdHashMarshaller extends m.StringMarshaller {
+export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
     private static readonly _hexRegExp: RegExp = new RegExp('^[0-9a-f]{64}$');
 
     filter(s: string): string {
@@ -30,13 +30,13 @@ export class Auth0UserIdHashMarshaller extends m.StringMarshaller {
 
 
 export class User {
-    @MarshalWith(m.IdMarshaller)
+    @MarshalWith(r.IdMarshaller)
     id: number;
 
-    @MarshalWith(m.TimeMarshaller)
+    @MarshalWith(r.TimeMarshaller)
     timeCreated: Date;
 
-    @MarshalWith(m.TimeMarshaller)
+    @MarshalWith(r.TimeMarshaller)
     timeLastUpdated: Date;
 
     @MarshalWith(MarshalEnum(Role))
@@ -45,10 +45,10 @@ export class User {
     @MarshalWith(Auth0UserIdHashMarshaller)
     auth0UserIdHash: string;
 
-    @MarshalWith(m.StringMarshaller)
+    @MarshalWith(r.StringMarshaller)
     name: string;
 
-    @MarshalWith(m.UriMarshaller)
+    @MarshalWith(r.UriMarshaller)
     pictureUri: string;
 
     constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, name: string, pictureUri: string) {
@@ -67,7 +67,7 @@ export class User {
 }
 
 
-export class Auth0AccessTokenMarshaller extends m.StringMarshaller {
+export class Auth0AccessTokenMarshaller extends r.StringMarshaller {
     private static readonly _alnumRegExp: RegExp = new RegExp('^[0-9a-zA-Z]+$');
     
     filter(s: string): string {

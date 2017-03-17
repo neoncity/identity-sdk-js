@@ -1,53 +1,54 @@
 {
-  "name": "@neoncity/identity-sdk-js",
-  "version": "0.5.4",
-  "description": "The SDK for the identity service.",
-  "author": "NeonCity team",
-  "scripts": {
-    "build": "tsc",
-    "pretest": "tsc",
-    "test-dev": "tsc --watch & mocha --watch $(find out -name '*-test.js')",
-    "test": "tsc && istanbul cover --config ./.istanbul.yml ./node_modules/mocha/bin/_mocha --  $(find out -name '*-test.js') && remap-istanbul -i ./build/coverage/coverage-final.json -o ./build/coverage/coverage-remapped.json && coverage-filter -i ./build/coverage/coverage-remapped.json -o ./build/coverage/coverage-filtered.json",
-    "push-coverage-to-codecov": "codecov -f ./build/coverage/coverage-filtered.json"
-  },
-  "keywords": [
-    "identity",
-    "sdk"
-  ],
-  "respository": {
-    "type": "git",
-    "url": "git+https://github.com/neoncity/identity-sdk-js.git"
-  },
-  "private": true,
-  "homepage": "https://github.com/neoncity/identity-sdk-js#readme",
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "filesPack": {
-    "out": "e:.",
-    "README.md": "f:README.md",
-    "package.json": "f:package.json",
-    "tsconfig.json": "f:tsconfig.json"
-  },
-  "license": "UNLICENSED",
-  "dependencies": {
-    "es6-promise": "^4.0.5",
-    "isomorphic-fetch": "^2.2.1"
-  },
-  "devDependencies": {
-    "@neoncity/common-js": "^0.14.0",
-    "@neoncity/togemfury": "^0.0.9",
-    "@types/chai": "^3.4.34",
-    "@types/es6-promise": "0.0.32",
-    "@types/isomorphic-fetch": "0.0.32",
-    "@types/istanbul": "^0.4.29",
-    "@types/mocha": "^2.2.38",
-    "@types/node": "^7.0.0",
-    "chai": "^3.5.0",
-    "codecov": "^1.0.1",
-    "coverage-filter": "^0.0.2",
-    "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
-    "remap-istanbul": "^0.8.4",
-    "typescript": "^2.1.5"
-  }
+    "name": "@neoncity/identity-sdk-js",
+    "version": "0.6.0",
+    "description": "The SDK for the identity service.",
+    "author": "NeonCity team",
+    "scripts": {
+	"build": "tsc",
+	"pretest": "tsc",
+	"test-dev": "tsc --watch & mocha --watch $(find out -name '*-test.js')",
+	"test": "tsc && istanbul cover --config ./.istanbul.yml ./node_modules/mocha/bin/_mocha --  $(find out -name '*-test.js') && remap-istanbul -i ./build/coverage/coverage-final.json -o ./build/coverage/coverage-remapped.json && coverage-filter -i ./build/coverage/coverage-remapped.json -o ./build/coverage/coverage-filtered.json",
+	"push-coverage-to-codecov": "codecov -f ./build/coverage/coverage-filtered.json"
+    },
+    "keywords": [
+	"identity",
+	"sdk"
+    ],
+    "respository": {
+	"type": "git",
+	"url": "git+https://github.com/neoncity/identity-sdk-js.git"
+    },
+    "private": true,
+    "homepage": "https://github.com/neoncity/identity-sdk-js#readme",
+    "main": "./index.js",
+    "types": "./index.d.ts",
+    "filesPack": {
+	"out": "e:.",
+	"README.md": "f:README.md",
+	"package.json": "f:package.json",
+	"tsconfig.json": "f:tsconfig.json"
+    },
+    "license": "UNLICENSED",
+    "dependencies": {
+	"es6-promise": "=4.0.5",
+	"isomorphic-fetch": "=2.2.1",
+	"raynor": "=0.1.2"
+    },
+    "devDependencies": {
+	"@neoncity/common-js": "=1.0.0",
+	"@neoncity/togemfury": "=0.0.9",
+	"@types/chai": "=3.4.34",
+	"@types/es6-promise": "=0.0.32",
+	"@types/isomorphic-fetch": "=0.0.32",
+	"@types/istanbul": "=0.4.29",
+	"@types/mocha": "=2.2.38",
+	"@types/node": "=7.0.0",
+	"chai": "=3.5.0",
+	"codecov": "=1.0.1",
+	"coverage-filter": "=0.1.0",
+	"istanbul": "=0.4.5",
+	"mocha": "=3.2.0",
+	"remap-istanbul": "=0.8.4",
+	"typescript": "=2.1.5"
+    }
 }
