@@ -108,15 +108,15 @@ export class IdentityError extends Error {
 }
 
 
-export function newIdentityService(auth0AccessToken: string, identityServiceHost: string) {
+export function newIdentityClient(identityServiceHost: string) {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
 
-    return new IdentityService(auth0AccessToken, identityServiceHost, authInfoMarshaller, identityResponseMarshaller);
+    return new IdentityClient(identityServiceHost, authInfoMarshaller, identityResponseMarshaller);
 }
 
 
-export class IdentityService {
+export class IdentityClient {
     private static readonly _getUserOptions: RequestInit = {
 	method: 'GET',
 	mode: 'cors',
@@ -133,26 +133,23 @@ export class IdentityService {
 	referrer: 'client'
     };
     
-    private readonly _auth0AccessToken: string;
     private readonly _identityServiceHost: string;
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _identityResponseMarshaller: Marshaller<IdentityResponse>;
 
     constructor(
-	auth0AccessToken: string,
 	identityServiceHost: string,
 	authInfoMarshaller: Marshaller<AuthInfo>,
 	identityResponseMarshaller: Marshaller<IdentityResponse>) {
-	this._auth0AccessToken = auth0AccessToken;
 	this._identityServiceHost = identityServiceHost;
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._identityResponseMarshaller = identityResponseMarshaller;
     }
 
-    async getOrCreateUser(): Promise<User> {
-	const authInfo = new AuthInfo(this._auth0AccessToken);
+    async getOrCreateUser(accessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(accessToken);
 	
-	const options = (Object as any).assign({}, IdentityService._getUserOptions, {
+	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
 	});
 
@@ -172,16 +169,16 @@ export class IdentityService {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
 	} else if (rawResponse.status == 404) {
-	    return await this._createUser();
+	    return await this._createUser(accessToken);
 	} else {
 	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
 	}
     }
 
-    private async _createUser(): Promise<User> {
-	const authInfo = new AuthInfo(this._auth0AccessToken);
+    private async _createUser(accessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(accessToken);
 
-	const options = (Object as any).assign({}, IdentityService._createUserOptions, {
+	const options = (Object as any).assign({}, IdentityClient._createUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
 	});
 
