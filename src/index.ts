@@ -146,6 +146,33 @@ export class IdentityClient {
 	this._identityResponseMarshaller = identityResponseMarshaller;
     }
 
+    async getUser(accessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(accessToken);
+	
+	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
+	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
+	});
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
+	} catch (e) {
+	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
+		return identityResponse.user;
+	    } catch (e) {
+		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
+	    }
+	} else {
+	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
+	}    
+    }
+
     async getOrCreateUser(accessToken: string): Promise<User> {
 	const authInfo = new AuthInfo(accessToken);
 	
