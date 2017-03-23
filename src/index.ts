@@ -108,7 +108,7 @@ export class IdentityError extends Error {
 }
 
 
-export class UnauthorizedIdentityError extends Error {
+export class UnauthorizedIdentityError extends IdentityError {
     constructor(message: string) {
 	super(message);
 	this.name = 'UnauthorizedIdentityError';
