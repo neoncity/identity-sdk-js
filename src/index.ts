@@ -1,5 +1,5 @@
+import * as HttpStatus from 'http-status-codes'
 import 'isomorphic-fetch'
-
 import * as r from 'raynor'
 import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
@@ -108,6 +108,14 @@ export class IdentityError extends Error {
 }
 
 
+export class UnauthorizedIdentityError extends Error {
+    constructor(message: string) {
+	super(message);
+	this.name = 'UnauthorizedIdentityError';
+    }
+}
+
+
 export function newIdentityClient(identityServiceHost: string) {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
@@ -168,6 +176,8 @@ export class IdentityClient {
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
 	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
 	}    
@@ -195,8 +205,10 @@ export class IdentityClient {
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
-	} else if (rawResponse.status == 404) {
+	} else if (rawResponse.status == HttpStatus.NOT_FOUND) {
 	    return await this._createUser(accessToken);
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
 	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
 	}
