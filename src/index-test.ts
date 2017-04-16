@@ -109,8 +109,7 @@ describe('Auth0AccessTokenMarshaller', () => {
 
     const BadContentAccessToken = [
         ' ',
-        '   \t ',
-        'ab-free'
+        '   \t '
     ];
 
     describe('extract', () => {
