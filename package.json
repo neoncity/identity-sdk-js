@@ -1,6 +1,6 @@
 {
   "name": "@neoncity/identity-sdk-js",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "The SDK for the identity service.",
   "author": "NeonCity team",
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "@neoncity/common-js": "=1.0.0",
+    "@neoncity/common-js": "~1",
     "@types/es6-promise": "=0.0.32",
     "es6-promise": "=4.0.5",
     "http-status-codes": "=1.1.6",
@@ -38,7 +38,7 @@
     "raynor": "=0.3.0"
   },
   "devDependencies": {
-    "@neoncity/togemfury": "=0.0.9",
+    "@neoncity/togemfury": "~0",
     "@types/chai": "=3.4.34",
     "@types/http-status-codes": "=1.0.29",
     "@types/isomorphic-fetch": "=0.0.32",
