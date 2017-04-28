@@ -1,13 +1,20 @@
 import * as HttpStatus from 'http-status-codes'
 import 'isomorphic-fetch'
 import * as r from 'raynor'
-import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
+import { ArrayOf, ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
 
 export enum Role {
     Unknown = 0,
     Regular = 1,
     Admin = 2
+}
+
+
+export enum UserEventType {
+    Unknown = 0,
+    Created = 1,
+    Removed = 2
 }
 
 
@@ -27,6 +34,17 @@ export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
     }
 }
 
+
+export class UserEvent {
+    @MarshalWith(r.IdMarshaller)
+    id: number;
+    
+    @MarshalWith(MarshalEnum(UserEventType))
+    type: UserEventType;
+
+    @MarshalWith(r.TimeMarshaller)
+    timestamp: Date;
+}
 
 
 export class User {
@@ -51,6 +69,9 @@ export class User {
     @MarshalWith(r.UriMarshaller)
     pictureUri: string;
 
+    @MarshalWith(ArrayOf(MarshalFrom(UserEvent)))
+    events: UserEvent[];
+
     constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, name: string, pictureUri: string) {
 	this.id = id;
 	this.timeCreated = timeCreated;
@@ -59,6 +80,7 @@ export class User {
 	this.auth0UserIdHash = auth0UserIdHash;
 	this.name = name;
 	this.pictureUri = pictureUri;
+        this.events = [];
     }
 
     isAdmin(): boolean {
