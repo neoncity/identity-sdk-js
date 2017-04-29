@@ -44,6 +44,9 @@ export class UserEvent {
 
     @MarshalWith(r.TimeMarshaller)
     timestamp: Date;
+
+    @MarshalWith(r.NullMarshaller)
+    data: null;
 }
 
 
