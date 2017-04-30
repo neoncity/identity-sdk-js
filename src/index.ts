@@ -1,7 +1,7 @@
 import * as HttpStatus from 'http-status-codes'
 import 'isomorphic-fetch'
 import * as r from 'raynor'
-import { ArrayOf, ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
+import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
 
 export enum Role {
@@ -72,9 +72,6 @@ export class User {
     @MarshalWith(r.UriMarshaller)
     pictureUri: string;
 
-    @MarshalWith(ArrayOf(MarshalFrom(UserEvent)))
-    events: UserEvent[];
-
     constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, name: string, pictureUri: string) {
 	this.id = id;
 	this.timeCreated = timeCreated;
@@ -83,7 +80,6 @@ export class User {
 	this.auth0UserIdHash = auth0UserIdHash;
 	this.name = name;
 	this.pictureUri = pictureUri;
-        this.events = [];
     }
 
     isAdmin(): boolean {
