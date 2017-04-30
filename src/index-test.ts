@@ -1,17 +1,17 @@
 import { expect } from 'chai'
 import 'mocha'
 
-import { Auth0AccessTokenMarshaller, Auth0UserIdHashMarshaller, Role, User } from './index'
+import { Auth0AccessTokenMarshaller, Auth0UserIdHashMarshaller, Role, User, UserState } from './index'
 
 
 describe('User', () => {
     const UserTestCases = [
 	{
-	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Admin, '', '', ''),
+	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Admin, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', ''),
 	    isAdmin: true
 	},
 	{
-	    user: new User(1, new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), Role.Regular, '', '', ''),
+	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Regular, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', ''),
 	    isAdmin: false
 	}
     ];

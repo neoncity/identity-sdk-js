@@ -4,6 +4,14 @@ import * as r from 'raynor'
 import { ArrayOf, ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
 
+export enum UserState {
+    Unknown = 0,
+    Anonymous = 1,
+    ActiveAndLinkedWithAuth0 = 2,
+    Removed = 3
+}
+
+
 export enum Role {
     Unknown = 0,
     Regular = 1,
@@ -55,11 +63,8 @@ export class User {
     @MarshalWith(r.IdMarshaller)
     id: number;
 
-    @MarshalWith(r.TimeMarshaller)
-    timeCreated: Date;
-
-    @MarshalWith(r.TimeMarshaller)
-    timeLastUpdated: Date;
+    @MarshalWith(MarshalEnum(UserState))
+    state: UserState;
 
     @MarshalWith(MarshalEnum(Role))
     role: Role;
@@ -67,18 +72,25 @@ export class User {
     @MarshalWith(Auth0UserIdHashMarshaller)
     auth0UserIdHash: string;
 
+    @MarshalWith(r.TimeMarshaller)
+    timeCreated: Date;
+
+    @MarshalWith(r.TimeMarshaller)
+    timeLastUpdated: Date;
+
     @MarshalWith(r.StringMarshaller)
     name: string;
 
     @MarshalWith(r.UriMarshaller)
     pictureUri: string;
 
-    constructor(id: number, timeCreated: Date, timeLastUpdated: Date, role: Role, auth0UserIdHash: string, name: string, pictureUri: string) {
+    constructor(id: number, state: UserState, role: Role, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string) {
 	this.id = id;
-	this.timeCreated = timeCreated;
-	this.timeLastUpdated = timeLastUpdated;
+        this.state = state;
 	this.role = role;
 	this.auth0UserIdHash = auth0UserIdHash;
+	this.timeCreated = timeCreated;
+	this.timeLastUpdated = timeLastUpdated;
 	this.name = name;
 	this.pictureUri = pictureUri;
     }
