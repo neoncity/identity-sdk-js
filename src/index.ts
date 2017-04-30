@@ -1,7 +1,7 @@
 import * as HttpStatus from 'http-status-codes'
 import 'isomorphic-fetch'
 import * as r from 'raynor'
-import { ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
+import { ArrayOf, ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
 
 export enum Role {
@@ -116,9 +116,15 @@ export class AuthInfo {
 }
 
 
-export class IdentityResponse {
+export class UserResponse {
     @MarshalWith(MarshalFrom(User))
     user: User;
+}
+
+
+export class UserEventsResponse {
+    @MarshalWith(ArrayOf(MarshalFrom(UserEvent)))
+    events: UserEvent[];
 }
 
 
@@ -140,9 +146,14 @@ export class UnauthorizedIdentityError extends IdentityError {
 
 export function newIdentityClient(identityServiceHost: string) {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
-    const identityResponseMarshaller = new (MarshalFrom(IdentityResponse))();
+    const userResponseMarshaller = new (MarshalFrom(UserResponse))();
+    const userEventsResponseMarshaller = new (MarshalFrom(UserEventsResponse))()
 
-    return new IdentityClient(identityServiceHost, authInfoMarshaller, identityResponseMarshaller);
+    return new IdentityClient(
+        identityServiceHost,
+        authInfoMarshaller,
+        userResponseMarshaller,
+        userEventsResponseMarshaller);
 }
 
 
@@ -162,18 +173,29 @@ export class IdentityClient {
 	redirect: 'error',
 	referrer: 'client'
     };
+
+    private static readonly _getUserEventsOptions: RequestInit = {
+	method: 'GET',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client'
+    };
     
     private readonly _identityServiceHost: string;
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
-    private readonly _identityResponseMarshaller: Marshaller<IdentityResponse>;
+    private readonly _userResponseMarshaller: Marshaller<UserResponse>;
+    private readonly _userEventsResponseMarshaller: Marshaller<UserEventsResponse>;    
 
     constructor(
 	identityServiceHost: string,
 	authInfoMarshaller: Marshaller<AuthInfo>,
-	identityResponseMarshaller: Marshaller<IdentityResponse>) {
+	userResponseMarshaller: Marshaller<UserResponse>,
+        userEventsResponseMarshaller: Marshaller<UserEventsResponse>) {
 	this._identityServiceHost = identityServiceHost;
 	this._authInfoMarshaller = authInfoMarshaller;
-	this._identityResponseMarshaller = identityResponseMarshaller;
+	this._userResponseMarshaller = userResponseMarshaller;
+	this._userEventsResponseMarshaller = userEventsResponseMarshaller;        
     }
 
     async getUser(accessToken: string): Promise<User> {
@@ -193,8 +215,8 @@ export class IdentityClient {
 	if (rawResponse.ok) {
 	    try {
 		const jsonResponse = await rawResponse.json();
-		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
-		return identityResponse.user;
+		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
+		return userResponse.user;
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
@@ -202,7 +224,7 @@ export class IdentityClient {
 	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
 	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
-	}    
+	}
     }
 
     async getOrCreateUser(accessToken: string): Promise<User> {
@@ -222,8 +244,8 @@ export class IdentityClient {
 	if (rawResponse.ok) {
 	    try {
 		const jsonResponse = await rawResponse.json();
-		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
-		return identityResponse.user;
+		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
+		return userResponse.user;
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
@@ -235,6 +257,37 @@ export class IdentityClient {
 	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
 	}
     }
+
+
+    async getUserEvents(accessToken: string): Promise<UserEvent[]> {
+	const authInfo = new AuthInfo(accessToken);
+	
+	const options = (Object as any).assign({}, IdentityClient._getUserEventsOptions, {
+	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
+	});
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch(`http://${this._identityServiceHost}/user/events`, options);
+	} catch (e) {
+	    throw new IdentityError(`Could not retrieve user eventss - request failed because '${e.toString()}'`);
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const userEventsResponse = this._userEventsResponseMarshaller.extract(jsonResponse);
+		return userEventsResponse.events;
+	    } catch (e) {
+		throw new IdentityError(`Could not retrieve user events '${e.toString()}'`);
+	    }
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
+	} else {
+	    throw new IdentityError(`Could not retrieve user events - service response ${rawResponse.status}`);
+	}
+    }
+    
 
     private async _createUser(accessToken: string): Promise<User> {
 	const authInfo = new AuthInfo(accessToken);
@@ -253,8 +306,8 @@ export class IdentityClient {
 	if (rawResponse.ok) {
 	    try {
 		const jsonResponse = await rawResponse.json();
-		const identityResponse = this._identityResponseMarshaller.extract(jsonResponse);
-		return identityResponse.user;
+		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
+		return userResponse.user;
 	    } catch (e) {
 		throw new IdentityError(`Could not create user '${e.toString()}'`);
 	    }
