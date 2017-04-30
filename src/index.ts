@@ -14,7 +14,8 @@ export enum Role {
 export enum UserEventType {
     Unknown = 0,
     Created = 1,
-    Removed = 2
+    Recreated = 2,
+    Removed = 3
 }
 
 
