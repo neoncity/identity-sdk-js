@@ -19,14 +19,6 @@ export enum Role {
 }
 
 
-export enum UserEventType {
-    Unknown = 0,
-    Created = 1,
-    Recreated = 2,
-    Removed = 3
-}
-
-
 export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
     private static readonly _hexRegExp: RegExp = new RegExp('^[0-9a-f]{64}$');
 
@@ -41,6 +33,14 @@ export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
 
 	return s;
     }
+}
+
+
+export enum UserEventType {
+    Unknown = 0,
+    Created = 1,
+    Recreated = 2,
+    Removed = 3
 }
 
 
