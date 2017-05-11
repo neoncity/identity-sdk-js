@@ -3,6 +3,8 @@ import 'isomorphic-fetch'
 import * as r from 'raynor'
 import { ArrayOf, ExtractError, MarshalEnum, MarshalFrom, MarshalWith, Marshaller } from 'raynor'
 
+import { Env, isLocal } from '@neoncity/common-js/env'
+
 
 export enum UserState {
     Unknown = 0,
@@ -156,12 +158,13 @@ export class UnauthorizedIdentityError extends IdentityError {
 }
 
 
-export function newIdentityClient(identityServiceHost: string) {
+export function newIdentityClient(env: Env, identityServiceHost: string) {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const userResponseMarshaller = new (MarshalFrom(UserResponse))();
     const userEventsResponseMarshaller = new (MarshalFrom(UserEventsResponse))()
 
     return new IdentityClient(
+	env,
         identityServiceHost,
         authInfoMarshaller,
         userResponseMarshaller,
@@ -193,21 +196,31 @@ export class IdentityClient {
 	redirect: 'error',
 	referrer: 'client'
     };
-    
+
+    private readonly _env: Env;
     private readonly _identityServiceHost: string;
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _userResponseMarshaller: Marshaller<UserResponse>;
-    private readonly _userEventsResponseMarshaller: Marshaller<UserEventsResponse>;    
+    private readonly _userEventsResponseMarshaller: Marshaller<UserEventsResponse>;
+    private readonly _protocol: string;
 
     constructor(
+	env: Env,
 	identityServiceHost: string,
 	authInfoMarshaller: Marshaller<AuthInfo>,
 	userResponseMarshaller: Marshaller<UserResponse>,
         userEventsResponseMarshaller: Marshaller<UserEventsResponse>) {
+	this._env = env;
 	this._identityServiceHost = identityServiceHost;
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._userResponseMarshaller = userResponseMarshaller;
-	this._userEventsResponseMarshaller = userEventsResponseMarshaller;        
+	this._userEventsResponseMarshaller = userEventsResponseMarshaller;
+
+	if (isLocal(this._env)) {
+	    this._protocol = 'http';
+	} else {
+	    this._protocol = 'https';
+	}
     }
 
     async getUser(accessToken: string): Promise<User> {
@@ -219,7 +232,7 @@ export class IdentityClient {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
 	}
@@ -248,7 +261,7 @@ export class IdentityClient {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
 	}
@@ -280,7 +293,7 @@ export class IdentityClient {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`http://${this._identityServiceHost}/user/events`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user/events`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not retrieve user eventss - request failed because '${e.toString()}'`);
 	}
@@ -310,7 +323,7 @@ export class IdentityClient {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`http://${this._identityServiceHost}/user`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not create user - request failed because '${e.toString()}'`);
 	}
