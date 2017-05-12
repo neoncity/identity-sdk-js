@@ -83,7 +83,7 @@ export class User {
     @MarshalWith(r.StringMarshaller)
     name: string;
 
-    @MarshalWith(r.UriMarshaller)
+    @MarshalWith(r.SecureWebUriMarshaller)
     pictureUri: string;
 
     constructor(id: number, state: UserState, role: Role, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string) {
