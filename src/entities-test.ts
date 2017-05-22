@@ -7,11 +7,11 @@ import { Auth0UserIdHashMarshaller, Role, User, UserState } from './entities'
 describe('User', () => {
     const UserTestCases = [
 	{
-	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Admin, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', ''),
+	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Admin, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', '', 'en'),
 	    isAdmin: true
 	},
 	{
-	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Regular, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', ''),
+	    user: new User(1, UserState.ActiveAndLinkedWithAuth0, Role.Regular, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', '', 'en'),
 	    isAdmin: false
 	}
     ];

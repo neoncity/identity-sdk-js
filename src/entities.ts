@@ -1,6 +1,8 @@
 import * as r from 'raynor'
 import { ExtractError, MarshalEnum, MarshalWith } from 'raynor'
 
+import { LanguageMarshaller } from '@neoncity/common-js'
+
 
 export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
     private static readonly _hexRegExp: RegExp = new RegExp('^[0-9a-f]{64}$');
@@ -59,7 +61,10 @@ export class User {
     @MarshalWith(r.SecureWebUriMarshaller)
     pictureUri: string;
 
-    constructor(id: number, state: UserState, role: Role, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string) {
+    @MarshalWith(LanguageMarshaller)
+    language: string;
+
+    constructor(id: number, state: UserState, role: Role, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string, language: string) {
 	this.id = id;
         this.state = state;
 	this.role = role;
@@ -68,6 +73,7 @@ export class User {
 	this.timeLastUpdated = timeLastUpdated;
 	this.name = name;
 	this.pictureUri = pictureUri;
+	this.language = language;
     }
 
     isAdmin(): boolean {
