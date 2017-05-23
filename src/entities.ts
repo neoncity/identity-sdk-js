@@ -102,6 +102,9 @@ export class Session {
     @MarshalWith(MarshalEnum(SessionState))
     state: SessionState;
 
+    @MarshalWith(r.TimeMarshaller)
+    timeExpires: Date;
+
     @MarshalWith(OptionalOf(MarshalFrom(User)))
     user: User|null;
 
