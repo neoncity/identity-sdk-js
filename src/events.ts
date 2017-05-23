@@ -23,3 +23,27 @@ export class UserEvent {
     @MarshalWith(r.NullMarshaller)
     data: null;
 }
+
+
+export enum SessionEventType {
+    Unknonw = 0,
+    Created = 1,
+    LinkedWithUser = 2,
+    Removed = 3,
+    Expired = 4
+}
+
+
+export class SessionEvent {
+    @MarshalWith(r.IdMarshaller)
+    id: number;
+
+    @MarshalWith(MarshalEnum(SessionEventType))
+    type: SessionEventType;
+
+    @MarshalWith(r.TimeMarshaller)
+    timestamp: Date;
+
+    @MarshalWith(r.NullMarshaller)
+    data: null;
+}
