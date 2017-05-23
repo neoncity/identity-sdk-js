@@ -1,5 +1,5 @@
 import * as r from 'raynor'
-import { ExtractError, MarshalEnum, MarshalWith } from 'raynor'
+import { ExtractError, OptionalOf, MarshalEnum, MarshalFrom, MarshalWith } from 'raynor'
 
 import { LanguageMarshaller } from '@neoncity/common-js'
 
@@ -23,9 +23,8 @@ export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
 
 export enum UserState {
     Unknown = 0,
-    Anonymous = 1,
-    ActiveAndLinkedWithAuth0 = 2,
-    Removed = 3
+    Active = 1,
+    Removed = 2
 }
 
 
@@ -78,5 +77,41 @@ export class User {
 
     isAdmin(): boolean {
         return this.role == Role.Admin;
+    }
+}
+
+
+export enum SessionState {
+    // A default value which shouldn't be used.
+    Unknown = 0,
+    // The session is active and recent activity has been seen for it, but otherwise the user is unknown.
+    Active = 1,
+    // The session is active and recent activity has been seen for it, and the user is known.
+    ActiveAndLinkedWithUser = 2,
+    // The session has been removed by hand. Either through admin action, or a user with an account logged out or removed their account.
+    Removed = 3,
+    // The session has expired.
+    Expired = 4
+}
+
+
+export class Session {
+    @MarshalWith(r.UuidMarshaller)
+    id: string;
+
+    @MarshalWith(MarshalEnum(SessionState))
+    state: SessionState;
+
+    @MarshalWith(OptionalOf(MarshalFrom(User)))
+    user: User|null;
+
+    @MarshalWith(r.TimeMarshaller)
+    timeCreated: Date;
+
+    @MarshalWith(r.TimeMarshaller)
+    timeLastUpdated: Date;
+
+    hasUser(): boolean {
+	return this.state == SessionState.ActiveAndLinkedWithUser && this.user != null /* superflous */;
     }
 }
