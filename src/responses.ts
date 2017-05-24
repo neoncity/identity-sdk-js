@@ -1,12 +1,18 @@
 import { ArrayOf, MarshalFrom, MarshalWith } from 'raynor'
 
-import { User } from './entities'
+import { Session, User } from './entities'
 import { UserEvent } from './events'
 
 
 export class UserResponse {
     @MarshalWith(MarshalFrom(User))
     user: User;
+}
+
+
+export class SessionResponse {
+    @MarshalWith(MarshalFrom(Session))
+    session: Session;
 }
 
 
