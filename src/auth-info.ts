@@ -27,7 +27,7 @@ export class Auth0AuthorizationCodeMarshaller extends r.StringMarshaller {
             throw new ExtractError('Expected a string to be non-empty');
         }
 
-        if (!Auth0AccessTokenMarshaller._alnumRegExp.test(s)) {
+        if (!Auth0AuthorizationCodeMarshaller._alnumRegExp.test(s)) {
             throw new ExtractError('Should only contain alphanumerics');
         }
 
