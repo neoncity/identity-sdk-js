@@ -135,7 +135,7 @@ export class IdentityClient {
 	}	    
     }
 
-    async getSession(sessionId: string): Promise<Session> {
+    async getOrCreateSession(sessionId: string): Promise<Session> {
 	const options = IdentityClient._getSessionOptions;
 
 	let rawResponse: Response;
@@ -153,6 +153,8 @@ export class IdentityClient {
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve session '${e.toString()}'`);
 	    }
+	} else if (rawResponse.status == HttpStatus.NOT_FOUND) {
+	    return await this.createSession();
 	} else {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}
