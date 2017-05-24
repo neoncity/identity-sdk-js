@@ -50,6 +50,14 @@ export class IdentityClient {
 	redirect: 'error',
 	referrer: 'client'
     };
+
+    private static readonly _getSessionOptions: RequestInit = {
+	method: 'GET',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client'
+    };    
     
     private static readonly _getUserOptions: RequestInit = {
 	method: 'GET',
@@ -125,6 +133,29 @@ export class IdentityClient {
 	} else {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}	    
+    }
+
+    async getSession(sessionId: string): Promise<Session> {
+	const options = IdentityClient._getSessionOptions;
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session/${sessionId}`, options);
+	} catch (e) {
+	    throw new IdentityError(`Could not retrieve session - request failed because '${e.toString()}'`);
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const sessionResponse = this._sessionResponseMarshaller.extract(jsonResponse);
+		return sessionResponse.session;
+	    } catch (e) {
+		throw new IdentityError(`Could not retrieve session '${e.toString()}'`);
+	    }
+	} else {
+	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
+	}
     }
 
     async getOrCreateUser(accessToken: string): Promise<User> {
