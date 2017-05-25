@@ -57,7 +57,7 @@ export class IdentityClient {
 	cache: 'no-cache',
 	redirect: 'error',
 	referrer: 'client'
-    };    
+    };
     
     private static readonly _getUserOptions: RequestInit = {
 	method: 'GET',
