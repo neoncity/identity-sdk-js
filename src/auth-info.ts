@@ -1,8 +1,7 @@
-import * as r from 'raynor'
-import { ExtractError, MarshalWith } from 'raynor'
+import { ExtractError, MarshalWith, OptionalOf, StringMarshaller, UuidMarshaller } from 'raynor'
 
 
-export class Auth0AccessTokenMarshaller extends r.StringMarshaller {
+export class Auth0AccessTokenMarshaller extends StringMarshaller {
     private static readonly _alnumRegExp: RegExp = new RegExp('^[0-9a-zA-Z_-]+$');
     
     filter(s: string): string {
@@ -19,7 +18,7 @@ export class Auth0AccessTokenMarshaller extends r.StringMarshaller {
 }
 
 
-export class Auth0AuthorizationCodeMarshaller extends r.StringMarshaller {
+export class Auth0AuthorizationCodeMarshaller extends StringMarshaller {
     private static readonly _alnumRegExp: RegExp = new RegExp('^[0-9a-zA-Z_-]+$');
     
     filter(s: string): string {
@@ -37,10 +36,14 @@ export class Auth0AuthorizationCodeMarshaller extends r.StringMarshaller {
 
 
 export class AuthInfo {
-    @MarshalWith(Auth0AccessTokenMarshaller)
-    auth0AccessToken: string;
+    @MarshalWith(UuidMarshaller)
+    sessionId: string;
+    
+    @MarshalWith(OptionalOf(Auth0AccessTokenMarshaller))
+    auth0AccessToken: string|null;
 
-    constructor(auth0AccessToken: string) {
+    constructor(sessionId: string, auth0AccessToken: string|null=null) {
+	this.sessionId = sessionId;
 	this.auth0AccessToken = auth0AccessToken;
     }
 }
