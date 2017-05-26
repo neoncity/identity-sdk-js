@@ -96,9 +96,6 @@ export enum SessionState {
 
 
 export class Session {
-    @MarshalWith(r.UuidMarshaller)
-    id: string;
-
     @MarshalWith(MarshalEnum(SessionState))
     state: SessionState;
 
