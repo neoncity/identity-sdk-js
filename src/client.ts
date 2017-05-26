@@ -5,9 +5,8 @@ import { MarshalFrom, Marshaller } from 'raynor'
 import { Env, isLocal } from '@neoncity/common-js'
 
 import { AuthInfo } from './auth-info'
-import { Session, User } from './entities'
-import { UserEvent } from './events'
-import { SessionResponse, UserResponse, UserEventsResponse } from './responses'
+import { Session } from './entities'
+import { SessionResponse } from './responses'
 
 
 export class IdentityError extends Error {
@@ -29,26 +28,32 @@ export class UnauthorizedIdentityError extends IdentityError {
 export function newIdentityClient(env: Env, identityServiceHost: string) {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const sessionResponseMarshaller = new (MarshalFrom(SessionResponse))();
-    const userResponseMarshaller = new (MarshalFrom(UserResponse))();
-    const userEventsResponseMarshaller = new (MarshalFrom(UserEventsResponse))()
 
     return new IdentityClient(
 	env,
         identityServiceHost,
         authInfoMarshaller,
-	sessionResponseMarshaller,
-        userResponseMarshaller,
-        userEventsResponseMarshaller);
+	sessionResponseMarshaller);
 }
 
 
 export class IdentityClient {
-    private static readonly _createSessionOptions: RequestInit = {
+    private static readonly _getOrCreateSessionOptions: RequestInit = {
 	method: 'POST',
 	mode: 'cors',
 	cache: 'no-cache',
 	redirect: 'error',
-	referrer: 'client'
+	referrer: 'client',
+	credentials: 'include'
+    };
+
+    private static readonly _getOrCreateUserOnSessionOptions: RequestInit = {
+	method: 'POST',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client',
+	credentials: 'include'
     };
 
     private static readonly _getSessionOptions: RequestInit = {
@@ -56,39 +61,15 @@ export class IdentityClient {
 	mode: 'cors',
 	cache: 'no-cache',
 	redirect: 'error',
-	referrer: 'client'
-    };
-    
-    private static readonly _getUserOptions: RequestInit = {
-	method: 'GET',
-	mode: 'cors',
-	cache: 'no-cache',
-	redirect: 'error',
-	referrer: 'client'
-    };
-
-    private static readonly _createUserOptions: RequestInit = {
-	method: 'POST',
-	mode: 'cors',
-	cache: 'no-cache',
-	redirect: 'error',
-	referrer: 'client'
-    };
-
-    private static readonly _getUserEventsOptions: RequestInit = {
-	method: 'GET',
-	mode: 'cors',
-	cache: 'no-cache',
-	redirect: 'error',
-	referrer: 'client'
+	referrer: 'client',
+	credentials: 'include'
     };
 
     private readonly _env: Env;
     private readonly _identityServiceHost: string;
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
-    private readonly _userResponseMarshaller: Marshaller<UserResponse>;
-    private readonly _userEventsResponseMarshaller: Marshaller<UserEventsResponse>;
+    private readonly _authInfo: AuthInfo|null;
     private readonly _protocol: string;
 
     constructor(
@@ -96,14 +77,12 @@ export class IdentityClient {
 	identityServiceHost: string,
 	authInfoMarshaller: Marshaller<AuthInfo>,
 	sessionResponseMarshaller: Marshaller<SessionResponse>,
-	userResponseMarshaller: Marshaller<UserResponse>,
-        userEventsResponseMarshaller: Marshaller<UserEventsResponse>) {
+	authInfo: AuthInfo|null = null) {
 	this._env = env;
 	this._identityServiceHost = identityServiceHost;
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._sessionResponseMarshaller = sessionResponseMarshaller;
-	this._userResponseMarshaller = userResponseMarshaller;
-	this._userEventsResponseMarshaller = userEventsResponseMarshaller;
+	this._authInfo = authInfo;
 
 	if (isLocal(this._env)) {
 	    this._protocol = 'http';
@@ -112,8 +91,21 @@ export class IdentityClient {
 	}
     }
 
-    async createSession(): Promise<Session> {
-	const options = IdentityClient._createSessionOptions;
+    withAuthInfo(authInfo: AuthInfo): IdentityClient {
+	return new IdentityClient(
+	    this._env,
+	    this._identityServiceHost,
+	    this._authInfoMarshaller,
+	    this._sessionResponseMarshaller,
+	    authInfo);
+    }
+    
+    async getOrCreateSession(): Promise<Session> {
+	const options = (Object as any).assign({}, IdentityClient._getOrCreateSessionOptions);
+
+	if (this._authInfo != null) {
+	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	}
 
 	let rawResponse: Response;
 	try {
@@ -132,17 +124,21 @@ export class IdentityClient {
 	    }
 	} else {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
-	}	    
+	}
     }
+    
+    async getOrCreateUserOnSession(): Promise<Session> {
+	const options = (Object as any).assign({}, IdentityClient._getOrCreateUserOnSessionOptions);
 
-    async getOrCreateSession(sessionId: string): Promise<Session> {
-	const options = IdentityClient._getSessionOptions;
+	if (this._authInfo != null) {
+	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	}
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session/${sessionId}`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session/user`, options);
 	} catch (e) {
-	    throw new IdentityError(`Could not retrieve session - request failed because '${e.toString()}'`);
+	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}
 
 	if (rawResponse.ok) {
@@ -153,127 +149,39 @@ export class IdentityClient {
 	    } catch (e) {
 		throw new IdentityError(`Could not retrieve session '${e.toString()}'`);
 	    }
-	} else if (rawResponse.status == HttpStatus.NOT_FOUND) {
-	    return await this.createSession();
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}
     }
-
-    async getOrCreateUser(sessionId: string, auth0AccessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
-	
-	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
-	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
-	});
-
-	let rawResponse: Response;
-	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
-	} catch (e) {
-	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
-	}
-
-	if (rawResponse.ok) {
-	    try {
-		const jsonResponse = await rawResponse.json();
-		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
-		return userResponse.user;
-	    } catch (e) {
-		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
-	    }
-	} else if (rawResponse.status == HttpStatus.NOT_FOUND) {
-	    return await this._createUser(sessionId, auth0AccessToken);
-	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
-	    throw new UnauthorizedIdentityError('User is not authorized');
-	} else {
-	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
-	}
-    }
-
-    async getUser(sessionId: string, auth0AccessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
-	
-	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
-	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
-	});
-
-	let rawResponse: Response;
-	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
-	} catch (e) {
-	    throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
-	}
-
-	if (rawResponse.ok) {
-	    try {
-		const jsonResponse = await rawResponse.json();
-		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
-		return userResponse.user;
-	    } catch (e) {
-		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
-	    }
-	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
-	    throw new UnauthorizedIdentityError('User is not authorized');
-	} else {
-	    throw new IdentityError(`Could not retrieve user - service response ${rawResponse.status}`);
-	}
-    }
-
-    async getUserEvents(sessionId: string, auth0AccessToken: string): Promise<UserEvent[]> {
-	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
-	
-	const options = (Object as any).assign({}, IdentityClient._getUserEventsOptions, {
-	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
-	});
-
-	let rawResponse: Response;
-	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user/event`, options);
-	} catch (e) {
-	    throw new IdentityError(`Could not retrieve user eventss - request failed because '${e.toString()}'`);
-	}
-
-	if (rawResponse.ok) {
-	    try {
-		const jsonResponse = await rawResponse.json();
-		const userEventsResponse = this._userEventsResponseMarshaller.extract(jsonResponse);
-		return userEventsResponse.events;
-	    } catch (e) {
-		throw new IdentityError(`Could not retrieve user events '${e.toString()}'`);
-	    }
-	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
-	    throw new UnauthorizedIdentityError('User is not authorized');
-	} else {
-	    throw new IdentityError(`Could not retrieve user events - service response ${rawResponse.status}`);
-	}
-    }
     
+    async getSession(): Promise<Session> {
+	const options = (Object as any).assign({}, IdentityClient._getSessionOptions);
 
-    private async _createUser(sessionId: string, auth0AccessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
-
-	const options = (Object as any).assign({}, IdentityClient._createUserOptions, {
-	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
-	});
+	if (this._authInfo != null) {
+	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	}
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
 	} catch (e) {
-	    throw new IdentityError(`Could not create user - request failed because '${e.toString()}'`);
+	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}
 
 	if (rawResponse.ok) {
 	    try {
 		const jsonResponse = await rawResponse.json();
-		const userResponse = this._userResponseMarshaller.extract(jsonResponse);
-		return userResponse.user;
+		const sessionResponse = this._sessionResponseMarshaller.extract(jsonResponse);
+		return sessionResponse.session;
 	    } catch (e) {
-		throw new IdentityError(`Could not create user '${e.toString()}'`);
+		throw new IdentityError(`Could not retrieve session '${e.toString()}'`);
 	    }
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
-	    throw new IdentityError(`Could not create user - service response ${rawResponse.status}`);
+	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}
     }
 }

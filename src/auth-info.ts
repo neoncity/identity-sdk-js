@@ -36,6 +36,9 @@ export class Auth0AuthorizationCodeMarshaller extends StringMarshaller {
 
 
 export class AuthInfo {
+    static readonly CookieName = 'neoncity-authinfo';
+    static readonly HeaderName = 'X-NeonCity-AuthInfo';
+    
     @MarshalWith(UuidMarshaller)
     sessionId: string;
     
