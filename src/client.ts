@@ -160,8 +160,8 @@ export class IdentityClient {
 	}
     }
 
-    async getOrCreateUser(sessionId: string, accessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, accessToken);
+    async getOrCreateUser(sessionId: string, auth0AccessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
 	
 	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
@@ -183,7 +183,7 @@ export class IdentityClient {
 		throw new IdentityError(`Could not retrieve user '${e.toString()}'`);
 	    }
 	} else if (rawResponse.status == HttpStatus.NOT_FOUND) {
-	    return await this._createUser(sessionId, accessToken);
+	    return await this._createUser(sessionId, auth0AccessToken);
 	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
 	    throw new UnauthorizedIdentityError('User is not authorized');
 	} else {
@@ -191,8 +191,8 @@ export class IdentityClient {
 	}
     }
 
-    async getUser(sessionId: string, accessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, accessToken);
+    async getUser(sessionId: string, auth0AccessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
 	
 	const options = (Object as any).assign({}, IdentityClient._getUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
@@ -220,8 +220,8 @@ export class IdentityClient {
 	}
     }
 
-    async getUserEvents(sessionId: string, accessToken: string): Promise<UserEvent[]> {
-	const authInfo = new AuthInfo(sessionId, accessToken);
+    async getUserEvents(sessionId: string, auth0AccessToken: string): Promise<UserEvent[]> {
+	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
 	
 	const options = (Object as any).assign({}, IdentityClient._getUserEventsOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
@@ -250,8 +250,8 @@ export class IdentityClient {
     }
     
 
-    private async _createUser(sessionId: string, accessToken: string): Promise<User> {
-	const authInfo = new AuthInfo(sessionId, accessToken);
+    private async _createUser(sessionId: string, auth0AccessToken: string): Promise<User> {
+	const authInfo = new AuthInfo(sessionId, auth0AccessToken);
 
 	const options = (Object as any).assign({}, IdentityClient._createUserOptions, {
 	    headers: {'X-NeonCity-AuthInfo': JSON.stringify(this._authInfoMarshaller.pack(authInfo))}
