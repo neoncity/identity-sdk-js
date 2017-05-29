@@ -58,6 +58,15 @@ export class IdentityClient {
 	credentials: 'include'
     };
 
+    private static readonly _expireSessionOptions: RequestInit = {
+	method: 'DELETE',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client',
+	credentials: 'include'
+    };    
+
     private static readonly _getOrCreateUserOnSessionOptions: RequestInit = {
 	method: 'POST',
 	mode: 'cors',
@@ -170,6 +179,27 @@ export class IdentityClient {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}
     }
+
+    async expireSession(): Promise<void> {
+	const options = (Object as any).assign({}, IdentityClient._expireSessionOptions);
+
+	if (this._authInfo != null) {
+	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	}
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
+	} catch (e) {
+	    throw new IdentityError(`Could not expire session - request failed because '${e.toString()}'`);
+	}
+
+	if (rawResponse.ok) {
+	    // Do nothing
+	} else {
+	    throw new IdentityError(`Could not expire session - service response ${rawResponse.status}`);
+	}
+    }    
 
     async getOrCreateUserOnSession(): Promise<[AuthInfo, Session]> {
 	const options = (Object as any).assign({}, IdentityClient._getOrCreateUserOnSessionOptions);

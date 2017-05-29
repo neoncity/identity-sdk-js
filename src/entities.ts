@@ -88,10 +88,10 @@ export enum SessionState {
     Active = 1,
     // The session is active and recent activity has been seen for it, and the user is known.
     ActiveAndLinkedWithUser = 2,
-    // The session has been removed by hand. Either through admin action, or a user with an account logged out or removed their account.
-    Removed = 3,
-    // The session has expired.
-    Expired = 4
+    // The session has expired, either of old age or because of a logout.
+    Expired = 3,
+    // The session has been removed by hand. Either through admin action, or a user with removed their account.
+    Removed = 4
 }
 
 
