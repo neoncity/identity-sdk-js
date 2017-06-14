@@ -170,11 +170,10 @@ class IdentityClientImpl {
     async expireSession(session: Session): Promise<void> {
 	const options = (Object as any).assign({}, IdentityClientImpl._expireSessionOptions);
 
+        options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
+
 	if (this._authInfo != null) {
-	    options.headers = {
-                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo)),
-                [Session.XsrfTokenHeaderName]: session.xsrfToken
-            };
+	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo));
 	}
 
 	let rawResponse: Response;
@@ -194,11 +193,10 @@ class IdentityClientImpl {
     async getOrCreateUserOnSession(session: Session): Promise<[AuthInfo, Session]> {
 	const options = (Object as any).assign({}, IdentityClientImpl._getOrCreateUserOnSessionOptions);
 
+        options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
+
 	if (this._authInfo != null) {
-	    options.headers = {
-                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo)),
-                [Session.XsrfTokenHeaderName]: session.xsrfToken
-            };
+	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo));
 	}
 
 	let rawResponse: Response;
