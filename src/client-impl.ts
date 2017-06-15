@@ -77,10 +77,10 @@ class IdentityClientImpl {
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>;
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
-    private readonly _hasContext: boolean;
     private readonly _authInfo: AuthInfo|null;
     private readonly _origin: string|null;
     private readonly _protocol: string;
+    private readonly _defaultHeaders: HeadersInit;
 
     constructor(
 	env: Env,
@@ -95,9 +95,18 @@ class IdentityClientImpl {
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._authInfoAndSessionResponseMarshaller = authInfoAndSessionResponseMarshaller
 	this._sessionResponseMarshaller = sessionResponseMarshaller;
-        this._hasContext = authInfo != null && origin != null;
 	this._authInfo = authInfo;
         this._origin = origin;
+
+        this._defaultHeaders = {};
+        
+        if (authInfo != null) {
+            this._defaultHeaders[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(authInfo));
+        }
+
+        if (origin != null) {
+            this._defaultHeaders['Origin'] = origin;
+        }
 
 	if (isLocal(this._env)) {
 	    this._protocol = 'http';
@@ -106,7 +115,7 @@ class IdentityClientImpl {
 	}
     }
 
-    withContext(authInfo: AuthInfo, origin: string): IdentityClient {
+    withContext(authInfo: AuthInfo|null, origin: string|null): IdentityClient {
 	return new IdentityClientImpl(
 	    this._env,
 	    this._identityServiceHost,
@@ -118,19 +127,7 @@ class IdentityClientImpl {
     }
     
     async getOrCreateSession(): Promise<[AuthInfo, Session]> {
-	const options = (Object as any).assign({}, IdentityClientImpl._getOrCreateSessionOptions);
-
-	if (this._hasContext) {
-	    options.headers = {
-                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
-                'Origin': this._origin
-            };
-	} else if (this._origin != null) {
-            // As a special exception when there's no authInfo but an origin header needs to be included,
-            // we allow sending it when just origin is not null. This is the only setup when authInfo would be null
-            // for a server-side request.
-            options.headers = {'Origin': this._origin};
-        }
+	const options = this._buildOptions(IdentityClientImpl._getOrCreateSessionOptions);
 
 	let rawResponse: Response;
 	try {
@@ -153,14 +150,7 @@ class IdentityClientImpl {
     }
     
     async getSession(): Promise<Session> {
-	const options = (Object as any).assign({}, IdentityClientImpl._getSessionOptions);
-
-	if (this._hasContext) {
-	    options.headers = {
-                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
-                'Origin': this._origin
-            };
-	}
+	const options = this._buildOptions(IdentityClientImpl._getSessionOptions);
 
 	let rawResponse: Response;
 	try {
@@ -185,15 +175,8 @@ class IdentityClientImpl {
     }
 
     async expireSession(session: Session): Promise<void> {
-	const options = (Object as any).assign({}, IdentityClientImpl._expireSessionOptions);
-
-        options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
-
-	if (this._hasContext) {
-	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo));
-            options.headers['Origin'] = this._origin;
-	}
-
+	const options = this._buildOptions(IdentityClientImpl._expireSessionOptions, session);
+        
 	let rawResponse: Response;
 	try {
 	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
@@ -209,14 +192,7 @@ class IdentityClientImpl {
     }    
 
     async getOrCreateUserOnSession(session: Session): Promise<[AuthInfo, Session]> {
-	const options = (Object as any).assign({}, IdentityClientImpl._getOrCreateUserOnSessionOptions);
-
-        options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
-
-	if (this._hasContext) {
-	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo));
-            options.headers['Origin'] = this._origin;
-	}
+	const options = this._buildOptions(IdentityClientImpl._getOrCreateUserOnSessionOptions, session);
 
 	let rawResponse: Response;
 	try {
@@ -241,14 +217,7 @@ class IdentityClientImpl {
     }
     
     async getUserOnSession(): Promise<Session> {
-	const options = (Object as any).assign({}, IdentityClientImpl._getUserOnSessionOptions);
-
-	if (this._hasContext) {
-	    options.headers = {
-                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
-                'Origin': this._origin
-            };
-	}
+	const options = this._buildOptions(IdentityClientImpl._getUserOnSessionOptions);
 
 	let rawResponse: Response;
 	try {
@@ -270,5 +239,15 @@ class IdentityClientImpl {
 	} else {
 	    throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
 	}
-    }    
+    }
+
+    private _buildOptions(template: RequestInit, session: Session|null = null) {
+        const options = (Object as any).assign({headers: this._defaultHeaders}, template);
+
+        if (session != null) {
+            options.headers = (Object as any).assign(options.headers, {[Session.XsrfTokenHeaderName]: session.xsrfToken});
+        }
+
+        return options;
+    }
 }
