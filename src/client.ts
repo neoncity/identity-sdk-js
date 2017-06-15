@@ -21,7 +21,7 @@ export class UnauthorizedIdentityError extends IdentityError {
 
 
 export interface IdentityClient {
-    withAuthInfo(authInfo: AuthInfo): IdentityClient;
+    withContext(authInfo: AuthInfo, origin: string): IdentityClient;
     getOrCreateSession(): Promise<[AuthInfo, Session]>;
     getSession(): Promise<Session>;
     expireSession(session: Session): Promise<void>;

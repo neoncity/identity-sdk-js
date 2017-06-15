@@ -77,7 +77,9 @@ class IdentityClientImpl {
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>;
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
+    private readonly _hasContext: boolean;
     private readonly _authInfo: AuthInfo|null;
+    private readonly _origin: string|null;
     private readonly _protocol: string;
 
     constructor(
@@ -86,13 +88,16 @@ class IdentityClientImpl {
 	authInfoMarshaller: Marshaller<AuthInfo>,
 	authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>,
 	sessionResponseMarshaller: Marshaller<SessionResponse>,
-	authInfo: AuthInfo|null = null) {
+	authInfo: AuthInfo|null = null,
+        origin: string|null = null) {
 	this._env = env;
 	this._identityServiceHost = identityServiceHost;
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._authInfoAndSessionResponseMarshaller = authInfoAndSessionResponseMarshaller
 	this._sessionResponseMarshaller = sessionResponseMarshaller;
+        this._hasContext = authInfo != null && origin != null;
 	this._authInfo = authInfo;
+        this._origin = origin;
 
 	if (isLocal(this._env)) {
 	    this._protocol = 'http';
@@ -101,21 +106,25 @@ class IdentityClientImpl {
 	}
     }
 
-    withAuthInfo(authInfo: AuthInfo): IdentityClient {
+    withContext(authInfo: AuthInfo, origin: string): IdentityClient {
 	return new IdentityClientImpl(
 	    this._env,
 	    this._identityServiceHost,
 	    this._authInfoMarshaller,
 	    this._authInfoAndSessionResponseMarshaller,
 	    this._sessionResponseMarshaller,
-	    authInfo);
+	    authInfo,
+            origin);
     }
     
     async getOrCreateSession(): Promise<[AuthInfo, Session]> {
 	const options = (Object as any).assign({}, IdentityClientImpl._getOrCreateSessionOptions);
 
-	if (this._authInfo != null) {
-	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	if (this._hasContext) {
+	    options.headers = {
+                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
+                'Origin': this._origin
+            };
 	}
 
 	let rawResponse: Response;
@@ -141,8 +150,11 @@ class IdentityClientImpl {
     async getSession(): Promise<Session> {
 	const options = (Object as any).assign({}, IdentityClientImpl._getSessionOptions);
 
-	if (this._authInfo != null) {
-	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	if (this._hasContext) {
+	    options.headers = {
+                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
+                'Origin': this._origin
+            };
 	}
 
 	let rawResponse: Response;
@@ -172,8 +184,9 @@ class IdentityClientImpl {
 
         options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
 
-	if (this._authInfo != null) {
-	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo));
+	if (this._hasContext) {
+	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo));
+            options.headers['Origin'] = this._origin;
 	}
 
 	let rawResponse: Response;
@@ -195,8 +208,9 @@ class IdentityClientImpl {
 
         options.headers = {[Session.XsrfTokenHeaderName]: session.xsrfToken};
 
-	if (this._authInfo != null) {
-	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo));
+	if (this._hasContext) {
+	    options.headers[AuthInfo.HeaderName] = JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo));
+            options.headers['Origin'] = this._origin;
 	}
 
 	let rawResponse: Response;
@@ -224,8 +238,11 @@ class IdentityClientImpl {
     async getUserOnSession(): Promise<Session> {
 	const options = (Object as any).assign({}, IdentityClientImpl._getUserOnSessionOptions);
 
-	if (this._authInfo != null) {
-	    options.headers = {[AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo))};
+	if (this._hasContext) {
+	    options.headers = {
+                [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
+                'Origin': this._origin
+            };
 	}
 
 	let rawResponse: Response;
