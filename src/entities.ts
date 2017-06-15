@@ -3,8 +3,6 @@ import { ExtractError, OptionalOf, MarshalEnum, MarshalFrom, MarshalWith } from 
 
 import { LanguageMarshaller } from '@neoncity/common-js'
 
-const base64Regex = require('base64-regex');
-
 
 export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
     private static readonly _hexRegExp: RegExp = new RegExp('^[0-9a-f]{64}$');
@@ -24,7 +22,7 @@ export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
 
 
 export class XsrfTokenMarshaller extends r.StringMarshaller {
-    private static readonly _base64RegExp: RegExp = base64Regex();
+    private static readonly _base64RegExp: RegExp = new RegExp('(?:[A-Za-z0-9+\/]{4})+');
 
     filter(s: string): string {
         if (s.length != 64) {

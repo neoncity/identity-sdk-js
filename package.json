@@ -1,6 +1,6 @@
 {
   "name": "@neoncity/identity-sdk-js",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "The SDK for the identity service.",
   "author": "NeonCity team",
   "scripts": {
@@ -32,7 +32,6 @@
   "dependencies": {
     "@neoncity/common-js": "~1",
     "@types/es6-promise": "=0.0.32",
-    "base64-regex": "=2.0.0",
     "es6-promise": "=4.0.5",
     "http-status-codes": "=1.1.6",
     "isomorphic-fetch": "=2.2.1",

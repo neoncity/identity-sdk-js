@@ -125,7 +125,12 @@ class IdentityClientImpl {
                 [AuthInfo.HeaderName]: JSON.stringify(this._authInfoMarshaller.pack(this._authInfo as AuthInfo)),
                 'Origin': this._origin
             };
-	}
+	} else if (this._origin != null) {
+            // As a special exception when there's no authInfo but an origin header needs to be included,
+            // we allow sending it when just origin is not null. This is the only setup when authInfo would be null
+            // for a server-side request.
+            options.headers = {'Origin': this._origin};
+        }
 
 	let rawResponse: Response;
 	try {
