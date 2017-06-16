@@ -88,8 +88,8 @@ class IdentityClientImpl {
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
     private readonly _authInfo: AuthInfo|null;
     private readonly _origin: string|null;
-    private readonly _protocol: string;
     private readonly _defaultHeaders: HeadersInit;
+    private readonly _protocol: string;
 
     constructor(
 	env: Env,
