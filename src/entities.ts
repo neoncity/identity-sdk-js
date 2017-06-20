@@ -62,6 +62,9 @@ export class User {
     @MarshalWith(MarshalEnum(Role))
     role: Role;
 
+    @MarshalWith(r.BooleanMarshaller)
+    agreedToCookiePolicy: boolean;    
+
     @MarshalWith(Auth0UserIdHashMarshaller)
     auth0UserIdHash: string;
 
@@ -123,6 +126,9 @@ export class Session {
 
     @MarshalWith(r.TimeMarshaller)
     timeExpires: Date;
+
+    @MarshalWith(r.BooleanMarshaller)
+    agreedToCookiePolicy: boolean;
 
     @MarshalWith(OptionalOf(MarshalFrom(User)))
     user: User|null;

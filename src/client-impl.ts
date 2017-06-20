@@ -52,6 +52,15 @@ class IdentityClientImpl {
 	redirect: 'error',
 	referrer: 'client',
 	credentials: 'include'
+    };
+
+    private static readonly _agreeToCookiePolicyForSessionOptions: RequestInit = {
+	method: 'POST',
+	mode: 'cors',
+	cache: 'no-cache',
+	redirect: 'error',
+	referrer: 'client',
+	credentials: 'include'
     };    
 
     private static readonly _getOrCreateUserOnSessionOptions: RequestInit = {
@@ -70,7 +79,7 @@ class IdentityClientImpl {
 	redirect: 'error',
 	referrer: 'client',
 	credentials: 'include'
-    };    
+    };
 
     private readonly _env: Env;
     private readonly _identityServiceHost: string;
@@ -189,7 +198,32 @@ class IdentityClientImpl {
 	} else {
 	    throw new IdentityError(`Could not expire session - service response ${rawResponse.status}`);
 	}
-    }    
+    }
+
+    async agreeToCookiePolicyForSession(session: Session): Promise<Session> {
+	const options = this._buildOptions(IdentityClientImpl._agreeToCookiePolicyForSessionOptions, session);
+
+	let rawResponse: Response;
+	try {
+	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session/agree-to-cookie-policy`, options);
+	} catch (e) {
+	    throw new IdentityError(`Could not agree to cookie policy - request failed because '${e.toString()}'`);
+	}
+
+	if (rawResponse.ok) {
+	    try {
+		const jsonResponse = await rawResponse.json();
+		const sessionResponse = this._sessionResponseMarshaller.extract(jsonResponse);
+		return sessionResponse.session;
+	    } catch (e) {
+		throw new IdentityError(`Could not agree to cookie policy '${e.toString()}'`);
+	    }
+	} else if (rawResponse.status == HttpStatus.UNAUTHORIZED) {
+	    throw new UnauthorizedIdentityError('User is not authorized');
+	} else {
+	    throw new IdentityError(`Could not agree to cookie policy - service response ${rawResponse.status}`);
+	}
+    }
 
     async getOrCreateUserOnSession(session: Session): Promise<[AuthInfo, Session]> {
 	const options = this._buildOptions(IdentityClientImpl._getOrCreateUserOnSessionOptions, session);

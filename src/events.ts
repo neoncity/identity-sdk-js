@@ -6,7 +6,8 @@ export enum UserEventType {
     Unknown = 0,
     Created = 1,
     Recreated = 2,
-    Removed = 3
+    Removed = 3,
+    AgreedToCookiePolicy = 4
 }
 
 
@@ -30,7 +31,8 @@ export enum SessionEventType {
     Created = 1,
     LinkedWithUser = 2,
     Removed = 3,
-    Expired = 4
+    Expired = 4,
+    AgreedToCookiePolicy = 5
 }
 
 

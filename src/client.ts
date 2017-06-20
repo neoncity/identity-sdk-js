@@ -25,6 +25,7 @@ export interface IdentityClient {
     getOrCreateSession(): Promise<[AuthInfo, Session]>;
     getSession(): Promise<Session>;
     expireSession(session: Session): Promise<void>;
+    agreeToCookiePolicyForSession(session: Session): Promise<Session>;
     getOrCreateUserOnSession(session: Session): Promise<[AuthInfo, Session]>;
     getUserOnSession(): Promise<Session>;
 }
