@@ -117,7 +117,7 @@ export enum SessionState {
 
 
 export class Session {
-    static readonly XsrfTokenHeaderName: string = 'X-AuthInfo-XsrfToken';
+    static readonly XsrfTokenHeaderName: string = 'X-NeonCity-XsrfToken';
     
     @MarshalWith(MarshalEnum(SessionState))
     state: SessionState;
