@@ -83,10 +83,11 @@ export class User {
     @MarshalWith(LanguageMarshaller)
     language: string;
 
-    constructor(id: number, state: UserState, role: Role, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string, language: string) {
+    constructor(id: number, state: UserState, role: Role, agreedToCookiePolicy: boolean, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string, language: string) {
 	this.id = id;
         this.state = state;
 	this.role = role;
+	this.agreedToCookiePolicy = agreedToCookiePolicy;
 	this.auth0UserIdHash = auth0UserIdHash;
 	this.timeCreated = timeCreated;
 	this.timeLastUpdated = timeLastUpdated;
