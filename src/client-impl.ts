@@ -1,8 +1,7 @@
 import * as HttpStatus from 'http-status-codes'
-import 'isomorphic-fetch'
 import { MarshalFrom, Marshaller } from 'raynor'
 
-import { Env, isLocal } from '@neoncity/common-js'
+import { Env, isLocal, WebFetcher } from '@neoncity/common-js'
 
 import { AuthInfo } from './auth-info'
 import {
@@ -13,7 +12,7 @@ import { Session } from './entities'
 import { AuthInfoAndSessionResponse, SessionResponse } from './responses'
 
 
-export function newIdentityClient(env: Env, identityServiceHost: string): IdentityClient {
+export function newIdentityClient(env: Env, identityServiceHost: string, webFetcher: WebFetcher): IdentityClient {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const authInfoAndSessionResponse = new (MarshalFrom(AuthInfoAndSessionResponse))();
     const sessionResponseMarshaller = new (MarshalFrom(SessionResponse))();
@@ -21,10 +20,12 @@ export function newIdentityClient(env: Env, identityServiceHost: string): Identi
     return new IdentityClientImpl(
 	env,
         identityServiceHost,
+        webFetcher,
         authInfoMarshaller,
 	authInfoAndSessionResponse,
 	sessionResponseMarshaller);
 }
+
 
 class IdentityClientImpl {
     private static readonly _getOrCreateSessionOptions: RequestInit = {
@@ -83,6 +84,7 @@ class IdentityClientImpl {
 
     private readonly _env: Env;
     private readonly _identityServiceHost: string;
+    private readonly _webFetcher: WebFetcher;
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>;
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
@@ -94,6 +96,7 @@ class IdentityClientImpl {
     constructor(
 	env: Env,
 	identityServiceHost: string,
+        webFetcher: WebFetcher,
 	authInfoMarshaller: Marshaller<AuthInfo>,
 	authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>,
 	sessionResponseMarshaller: Marshaller<SessionResponse>,
@@ -101,6 +104,7 @@ class IdentityClientImpl {
         origin: string|null = null) {
 	this._env = env;
 	this._identityServiceHost = identityServiceHost;
+        this._webFetcher = webFetcher;
 	this._authInfoMarshaller = authInfoMarshaller;
 	this._authInfoAndSessionResponseMarshaller = authInfoAndSessionResponseMarshaller
 	this._sessionResponseMarshaller = sessionResponseMarshaller;
@@ -128,6 +132,7 @@ class IdentityClientImpl {
 	return new IdentityClientImpl(
 	    this._env,
 	    this._identityServiceHost,
+            this._webFetcher,
 	    this._authInfoMarshaller,
 	    this._authInfoAndSessionResponseMarshaller,
 	    this._sessionResponseMarshaller,
@@ -140,7 +145,7 @@ class IdentityClientImpl {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}
@@ -163,7 +168,7 @@ class IdentityClientImpl {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}
@@ -188,7 +193,7 @@ class IdentityClientImpl {
         
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/session`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not expire session - request failed because '${e.toString()}'`);
 	}
@@ -205,7 +210,7 @@ class IdentityClientImpl {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/session/agree-to-cookie-policy`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/session/agree-to-cookie-policy`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not agree to cookie policy - request failed because '${e.toString()}'`);
 	}
@@ -230,7 +235,7 @@ class IdentityClientImpl {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}
@@ -255,7 +260,7 @@ class IdentityClientImpl {
 
 	let rawResponse: Response;
 	try {
-	    rawResponse = await fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
+	    rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
 	} catch (e) {
 	    throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
 	}

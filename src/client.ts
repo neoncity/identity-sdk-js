@@ -1,5 +1,3 @@
-import 'isomorphic-fetch'
-
 import { AuthInfo } from './auth-info'
 import { Session } from './entities'
 
