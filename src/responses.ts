@@ -7,7 +7,7 @@ import { Session } from './entities'
 export class AuthInfoAndSessionResponse {
     @MarshalWith(MarshalFrom(AuthInfo))
     authInfo: AuthInfo;
-    
+
     @MarshalWith(MarshalFrom(Session))
     session: Session;
 }

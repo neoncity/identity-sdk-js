@@ -61,11 +61,11 @@ describe('Auth0AccessTokenMarshaller', () => {
                 const accessTokenMarshaller = new Auth0AccessTokenMarshaller();
 
                 const raw = accessToken;
-		const extracted = accessTokenMarshaller.extract(raw);
-		const packed = accessTokenMarshaller.pack(extracted);
+                const extracted = accessTokenMarshaller.extract(raw);
+                const packed = accessTokenMarshaller.pack(extracted);
 
-		expect(packed).to.eql(raw);
+                expect(packed).to.eql(raw);
             });
         }
-    });    
+    });
 });

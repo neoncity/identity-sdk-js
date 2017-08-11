@@ -9,14 +9,14 @@ export class Auth0UserIdHashMarshaller extends r.StringMarshaller {
 
     filter(s: string): string {
         if (s.length != 64) {
-	    throw new ExtractError('Expected string to be 64 characters');
-	}
+            throw new ExtractError('Expected string to be 64 characters');
+        }
 
-	if (!Auth0UserIdHashMarshaller._hexRegExp.test(s)) {
-	    throw new ExtractError('Expected all hex characters');
-	}
+        if (!Auth0UserIdHashMarshaller._hexRegExp.test(s)) {
+            throw new ExtractError('Expected all hex characters');
+        }
 
-	return s;
+        return s;
     }
 }
 
@@ -27,13 +27,13 @@ export class XsrfTokenMarshaller extends r.StringMarshaller {
     filter(s: string): string {
         if (s.length != 64) {
             throw new ExtractError('Expected string to be 64 characters');
-	}
+        }
 
-	if (!XsrfTokenMarshaller._base64RegExp.test(s)) {
-	    throw new ExtractError('Expected a base64 string');
-	}
+        if (!XsrfTokenMarshaller._base64RegExp.test(s)) {
+            throw new ExtractError('Expected a base64 string');
+        }
 
-	return s;
+        return s;
     }
 }
 
@@ -63,7 +63,7 @@ export class User {
     role: Role;
 
     @MarshalWith(r.BooleanMarshaller)
-    agreedToCookiePolicy: boolean;    
+    agreedToCookiePolicy: boolean;
 
     @MarshalWith(Auth0UserIdHashMarshaller)
     auth0UserIdHash: string;
@@ -84,16 +84,16 @@ export class User {
     language: string;
 
     constructor(id: number, state: UserState, role: Role, agreedToCookiePolicy: boolean, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string, language: string) {
-	this.id = id;
+        this.id = id;
         this.state = state;
-	this.role = role;
-	this.agreedToCookiePolicy = agreedToCookiePolicy;
-	this.auth0UserIdHash = auth0UserIdHash;
-	this.timeCreated = timeCreated;
-	this.timeLastUpdated = timeLastUpdated;
-	this.name = name;
-	this.pictureUri = pictureUri;
-	this.language = language;
+        this.role = role;
+        this.agreedToCookiePolicy = agreedToCookiePolicy;
+        this.auth0UserIdHash = auth0UserIdHash;
+        this.timeCreated = timeCreated;
+        this.timeLastUpdated = timeLastUpdated;
+        this.name = name;
+        this.pictureUri = pictureUri;
+        this.language = language;
     }
 
     isAdmin(): boolean {
@@ -118,7 +118,7 @@ export enum SessionState {
 
 export class Session {
     static readonly XsrfTokenHeaderName: string = 'X-NeonCity-XsrfToken';
-    
+
     @MarshalWith(MarshalEnum(SessionState))
     state: SessionState;
 
@@ -132,7 +132,7 @@ export class Session {
     agreedToCookiePolicy: boolean;
 
     @MarshalWith(OptionalOf(MarshalFrom(User)))
-    user: User|null;
+    user: User | null;
 
     @MarshalWith(r.TimeMarshaller)
     timeCreated: Date;
@@ -141,6 +141,6 @@ export class Session {
     timeLastUpdated: Date;
 
     hasUser(): boolean {
-	return this.state == SessionState.ActiveAndLinkedWithUser && this.user != null /* superflous */;
+        return this.state == SessionState.ActiveAndLinkedWithUser && this.user != null /* superflous */;
     }
 }

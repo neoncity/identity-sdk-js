@@ -4,16 +4,16 @@ import { Session } from './entities'
 
 export class IdentityError extends Error {
     constructor(message: string) {
-	super(message);
-	this.name = 'IdentityError';
+        super(message);
+        this.name = 'IdentityError';
     }
 }
 
 
 export class UnauthorizedIdentityError extends IdentityError {
     constructor(message: string) {
-	super(message);
-	this.name = 'UnauthorizedIdentityError';
+        super(message);
+        this.name = 'UnauthorizedIdentityError';
     }
 }
 
