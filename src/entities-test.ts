@@ -5,13 +5,39 @@ import { Auth0UserIdHashMarshaller, Role, User, UserState } from './entities'
 
 
 describe('User', () => {
+    const userOne: User = (() => {
+        const user = new User();
+        user.id = 1;
+        user.state = UserState.Active;
+        user.role = Role.Admin;
+        user.name = 'John Doe';
+        user.pictureUri = 'https =//example.com/1.jpg';
+        user.language = 'en';
+        user.timeCreated = new Date(Date.UTC(2017, 1, 17));
+        user.timeLastUpdated = new Date(Date.UTC(2017, 1, 17))
+        return user;
+    })();
+
+    const userTwo: User = (() => {
+        const user = new User();
+        user.id = 1;
+        user.state = UserState.Active;
+        user.role = Role.Regular;
+        user.name = 'James Doe';
+        user.pictureUri = 'https =//example.com/1.jpg';
+        user.language = 'en';
+        user.timeCreated = new Date(Date.UTC(2017, 1, 17));
+        user.timeLastUpdated = new Date(Date.UTC(2017, 1, 17))
+        return user;
+    })();
+
     const UserTestCases = [
         {
-            user: new User(1, UserState.Active, Role.Admin, true, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', '', 'en'),
+            user: userOne,
             isAdmin: true
         },
         {
-            user: new User(1, UserState.Active, Role.Regular, false, '', new Date(Date.UTC(2017, 1, 17)), new Date(Date.UTC(2017, 1, 17)), '', '', 'en'),
+            user: userTwo,
             isAdmin: false
         }
     ];

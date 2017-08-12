@@ -62,18 +62,6 @@ export class User {
     @MarshalWith(MarshalEnum(Role))
     role: Role;
 
-    @MarshalWith(r.BooleanMarshaller)
-    agreedToCookiePolicy: boolean;
-
-    @MarshalWith(Auth0UserIdHashMarshaller)
-    auth0UserIdHash: string;
-
-    @MarshalWith(r.TimeMarshaller)
-    timeCreated: Date;
-
-    @MarshalWith(r.TimeMarshaller)
-    timeLastUpdated: Date;
-
     @MarshalWith(r.StringMarshaller)
     name: string;
 
@@ -83,22 +71,28 @@ export class User {
     @MarshalWith(LanguageMarshaller)
     language: string;
 
-    constructor(id: number, state: UserState, role: Role, agreedToCookiePolicy: boolean, auth0UserIdHash: string, timeCreated: Date, timeLastUpdated: Date, name: string, pictureUri: string, language: string) {
-        this.id = id;
-        this.state = state;
-        this.role = role;
-        this.agreedToCookiePolicy = agreedToCookiePolicy;
-        this.auth0UserIdHash = auth0UserIdHash;
-        this.timeCreated = timeCreated;
-        this.timeLastUpdated = timeLastUpdated;
-        this.name = name;
-        this.pictureUri = pictureUri;
-        this.language = language;
-    }
+    @MarshalWith(r.TimeMarshaller)
+    timeCreated: Date;
+
+    @MarshalWith(r.TimeMarshaller)
+    timeLastUpdated: Date;
 
     isAdmin(): boolean {
         return this.role == Role.Admin;
     }
+}
+
+
+export class PublicUser extends User {
+}
+
+
+export class PrivateUser extends User {
+    @MarshalWith(r.BooleanMarshaller)
+    agreedToCookiePolicy: boolean;
+
+    @MarshalWith(Auth0UserIdHashMarshaller)
+    auth0UserIdHash: string;
 }
 
 
@@ -131,8 +125,8 @@ export class Session {
     @MarshalWith(r.BooleanMarshaller)
     agreedToCookiePolicy: boolean;
 
-    @MarshalWith(OptionalOf(MarshalFrom(User)))
-    user: User | null;
+    @MarshalWith(OptionalOf(MarshalFrom(PrivateUser)))
+    user: PrivateUser | null;
 
     @MarshalWith(r.TimeMarshaller)
     timeCreated: Date;
