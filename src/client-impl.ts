@@ -290,7 +290,7 @@ class IdentityClientImpl implements IdentityClient {
         let rawResponse: Response;
         try {
             const encodedIds = encodeURIComponent(JSON.stringify(ids));
-            rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/user-info?ids=${encodedIds}`, options);
+            rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/users-info?ids=${encodedIds}`, options);
         } catch (e) {
             throw new IdentityError(`Could not retrieve users - request failed because '${e.toString()}'`);
         }
