@@ -1,5 +1,5 @@
 import { AuthInfo } from './auth-info'
-import { Session } from './entities'
+import { PublicUser, Session } from './entities'
 
 
 export class IdentityError extends Error {
@@ -20,10 +20,13 @@ export class UnauthorizedIdentityError extends IdentityError {
 
 export interface IdentityClient {
     withContext(authInfo: AuthInfo): IdentityClient;
+
     getOrCreateSession(): Promise<[AuthInfo, Session]>;
     getSession(): Promise<Session>;
     expireSession(session: Session): Promise<void>;
     agreeToCookiePolicyForSession(session: Session): Promise<Session>;
     getOrCreateUserOnSession(session: Session): Promise<[AuthInfo, Session]>;
     getUserOnSession(): Promise<Session>;
+
+    getUsersInfo(ids: number[]): Promise<PublicUser[]>;
 }

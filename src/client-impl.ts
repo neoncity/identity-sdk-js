@@ -9,14 +9,18 @@ import {
     IdentityError,
     UnauthorizedIdentityError
 } from './client'
-import { Session } from './entities'
-import { AuthInfoAndSessionResponse, SessionResponse } from './responses'
+import { PublicUser, Session } from './entities'
+import {
+    AuthInfoAndSessionResponse,
+    SessionResponse,
+    UsersInfoResponse } from './responses'
 
 
 export function newIdentityClient(env: Env, origin: string, identityServiceHost: string, webFetcher: WebFetcher): IdentityClient {
     const authInfoMarshaller = new (MarshalFrom(AuthInfo))();
     const authInfoAndSessionResponse = new (MarshalFrom(AuthInfoAndSessionResponse))();
     const sessionResponseMarshaller = new (MarshalFrom(SessionResponse))();
+    const usersInfoResponseMarshaller = new (MarshalFrom(UsersInfoResponse))();
 
     return new IdentityClientImpl(
         env,
@@ -25,11 +29,12 @@ export function newIdentityClient(env: Env, origin: string, identityServiceHost:
         webFetcher,
         authInfoMarshaller,
         authInfoAndSessionResponse,
-        sessionResponseMarshaller);
+        sessionResponseMarshaller,
+        usersInfoResponseMarshaller);
 }
 
 
-class IdentityClientImpl {
+class IdentityClientImpl implements IdentityClient {
     private static readonly _getOrCreateSessionOptions: RequestInit = {
         method: 'POST',
         cache: 'no-cache',
@@ -72,6 +77,13 @@ class IdentityClientImpl {
         referrer: 'client',
     };
 
+    private static readonly _getUsersInfoOptions: RequestInit = {
+        method: 'GET',
+        cache: 'no-cache',
+        redirect: 'error',
+        referrer: 'client',
+    };
+
     private readonly _env: Env;
     private readonly _origin: string;
     private readonly _identityServiceHost: string;
@@ -79,6 +91,7 @@ class IdentityClientImpl {
     private readonly _authInfoMarshaller: Marshaller<AuthInfo>;
     private readonly _authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>;
     private readonly _sessionResponseMarshaller: Marshaller<SessionResponse>;
+    private readonly _usersInfoResponseMarshaller: Marshaller<UsersInfoResponse>;
     private readonly _authInfo: AuthInfo | null;
     private readonly _defaultHeaders: HeadersInit;
     private readonly _protocol: string;
@@ -91,6 +104,7 @@ class IdentityClientImpl {
         authInfoMarshaller: Marshaller<AuthInfo>,
         authInfoAndSessionResponseMarshaller: Marshaller<AuthInfoAndSessionResponse>,
         sessionResponseMarshaller: Marshaller<SessionResponse>,
+        usersInfoResponseMarshaller: Marshaller<UsersInfoResponse>,
         authInfo: AuthInfo | null = null) {
         this._env = env;
         this._origin = origin;
@@ -99,6 +113,7 @@ class IdentityClientImpl {
         this._authInfoMarshaller = authInfoMarshaller;
         this._authInfoAndSessionResponseMarshaller = authInfoAndSessionResponseMarshaller
         this._sessionResponseMarshaller = sessionResponseMarshaller;
+        this._usersInfoResponseMarshaller = usersInfoResponseMarshaller;
         this._authInfo = authInfo;
 
         this._defaultHeaders = {
@@ -125,6 +140,7 @@ class IdentityClientImpl {
             this._authInfoMarshaller,
             this._authInfoAndSessionResponseMarshaller,
             this._sessionResponseMarshaller,
+            this._usersInfoResponseMarshaller,
             authInfo);
     }
 
@@ -250,7 +266,7 @@ class IdentityClientImpl {
         try {
             rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/user`, options);
         } catch (e) {
-            throw new IdentityError(`Could not create session - request failed because '${e.toString()}'`);
+            throw new IdentityError(`Could not retrieve user - request failed because '${e.toString()}'`);
         }
 
         if (rawResponse.ok) {
@@ -265,6 +281,30 @@ class IdentityClientImpl {
             throw new UnauthorizedIdentityError('User is not authorized');
         } else {
             throw new IdentityError(`Could not retrieve session - service response ${rawResponse.status}`);
+        }
+    }
+
+    async getUsersInfo(ids: number[]): Promise<PublicUser[]> {
+        const options = this._buildOptions(IdentityClientImpl._getUsersInfoOptions);
+
+        let rawResponse: Response;
+        try {
+            const encodedIds = encodeURIComponent(JSON.stringify(ids));
+            rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/user-info?ids=${encodedIds}`, options);
+        } catch (e) {
+            throw new IdentityError(`Could not retrieve users - request failed because '${e.toString()}'`);
+        }
+
+        if (rawResponse.ok) {
+            try {
+                const jsonResponse = await rawResponse.json();
+                const usersInfoResponse = this._usersInfoResponseMarshaller.extract(jsonResponse);
+                return usersInfoResponse.usersInfo;
+            } catch (e) {
+                throw new IdentityError(`Could not retrieve user info '${e.toString()}'`);
+            }
+        } else {
+            throw new IdentityError(`Could not retrieve user info - service response ${rawResponse.status}`);
         }
     }
 
