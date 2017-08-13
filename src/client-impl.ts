@@ -13,7 +13,8 @@ import { PublicUser, Session } from './entities'
 import {
     AuthInfoAndSessionResponse,
     SessionResponse,
-    UsersInfoResponse } from './responses'
+    UsersInfoResponse
+} from './responses'
 
 
 export function newIdentityClient(env: Env, origin: string, identityServiceHost: string, webFetcher: WebFetcher): IdentityClient {
@@ -285,11 +286,18 @@ class IdentityClientImpl implements IdentityClient {
     }
 
     async getUsersInfo(ids: number[]): Promise<PublicUser[]> {
+        const dedupedIds: number[] = [];
+        for (let id of ids) {
+            if (dedupedIds.indexOf(id) != -1)
+                continue;
+            dedupedIds.push(id);
+        }
+
         const options = this._buildOptions(IdentityClientImpl._getUsersInfoOptions);
 
         let rawResponse: Response;
         try {
-            const encodedIds = encodeURIComponent(JSON.stringify(ids));
+            const encodedIds = encodeURIComponent(JSON.stringify(dedupedIds));
             rawResponse = await this._webFetcher.fetch(`${this._protocol}://${this._identityServiceHost}/users-info?ids=${encodedIds}`, options);
         } catch (e) {
             throw new IdentityError(`Could not retrieve users - request failed because '${e.toString()}'`);
