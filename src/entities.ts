@@ -103,10 +103,9 @@ export enum SessionState {
     Active = 1,
     // The session is active and recent activity has been seen for it, and the user is known.
     ActiveAndLinkedWithUser = 2,
-    // The session has expired, either of old age or because of a logout.
-    Expired = 3,
-    // The session has been removed by hand. Either through admin action, or a user with removed their account.
-    Removed = 4
+    // The session has expired. This can happen because the user logs out, or because of some admin action
+    // like resetting all the user's sessions when some strange activity has occurred.
+    Expired = 3
 }
 
 
@@ -118,9 +117,6 @@ export class Session {
 
     @MarshalWith(XsrfTokenMarshaller)
     xsrfToken: string;
-
-    @MarshalWith(r.TimeMarshaller)
-    timeExpires: Date;
 
     @MarshalWith(r.BooleanMarshaller)
     agreedToCookiePolicy: boolean;

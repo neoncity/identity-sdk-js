@@ -31,9 +31,8 @@ export enum SessionEventType {
     Unknonw = 0,
     Created = 1,
     LinkedWithUser = 2,
-    Removed = 3,
-    Expired = 4,
-    AgreedToCookiePolicy = 5
+    Expired = 3,
+    AgreedToCookiePolicy = 4
 }
 
 
